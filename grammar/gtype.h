@@ -72,6 +72,7 @@
 #define F64_NUMBER					104
 #define BOOL_TRUE					105
 #define BOOL_FALSE					106
+#define TAB_BLOCK					107
 
 #endif
 
