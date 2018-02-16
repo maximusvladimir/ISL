@@ -62,6 +62,7 @@
 #define KEY_RETURN					84
 #define KEY_BREAK					85
 #define KEY_WHILE					86
+#define KEY_FUNC					87
 
 // Others
 #define IDENTIFIER					100
