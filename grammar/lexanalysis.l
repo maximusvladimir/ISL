@@ -1,7 +1,11 @@
 %{
+#include <stdio.h>
 #include "gtype.h"
 
 void comment();
+
+// use standard io for now:
+#define YY_STDINIT
 %}
 
 %%
@@ -66,15 +70,20 @@ L?\'(\\.|[^\\'])*\'		return SYM_STR_CHAR;
 "true"					return BOOL_TRUE;
 "false"					return BOOL_FALSE;
 [\t]					return TAB_BLOCK;
-[0-9]*					return INT_NUMBER;
-[0-9]*l					return I64_NUMBER;
-[0-9]*.[0-9]*			return F64_NUMBER;
-[0-9]*.[0-9]*f			return F32_NUMBER;
-[a-zA-Z_][a-zA-Z_0-9]*	return IDENTIFIER;
 [ \v\n\f]				{}
-.						{}
+[ ]*					{}
+[0-9]+					return INT_NUMBER;
+[0-9]+l					return I64_NUMBER;
+([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+) return F64_NUMBER;
+([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+)f			return F32_NUMBER;
+[a-zA-Z_][a-zA-Z_0-9]*	return IDENTIFIER;
 
 %%
+
+int yywrap()
+{
+	return 1;
+}
 
 void comment()
 {
@@ -99,7 +108,20 @@ void comment()
 		putchar(c1);
 }	
 
+// for debugging:
+int main(int argc, const char* argv[])
+{
+	int ntoken, vtoken;
 
+	ntoken = yylex();
+	while (ntoken)
+	{
+		printf("%d\n", ntoken);
+		ntoken = yylex();
+	}
+
+	return 0;
+}
 
 
 
