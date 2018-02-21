@@ -1,8 +1,16 @@
 %{
 #include <stdio.h>
-#include "gtype.h"
+#include "grammar.tab.h"
+#include <inttypes.h>
+#include <errono.h>
 
 void comment();
+
+void storebool(int b);
+void storei32(char v[]);
+void storei64(char v[]);
+void storef32(char v[]);
+void storef64(char v[]);
 
 // use standard io for now:
 //#define YY_STDINIT
@@ -10,7 +18,7 @@ void comment();
 
 %%
 "/*"										{ comment(); }
-"//".*										{}
+(\t)*\/\/.*									{}
 
 L?\"(\\.|[^\\"])*\"							return SYM_STR_CHAR;
 L?\'(\\.|[^\\'])*\'							return SYM_STR_CHAR;
@@ -73,16 +81,16 @@ L?\'(\\.|[^\\'])*\'							return SYM_STR_CHAR;
 "break"										return KEY_BREAK;
 "while"										return KEY_WHILE;
 "func"										return KEY_FUNC;
-"true"										return BOOL_TRUE;
-"false"										return BOOL_FALSE;
+"true"										{ storebool(1); return BOOL_NUMBER; }
+"false"										{ storebool(0); return BOOL_NUMBER; }
 [\t]										return TAB_BLOCK;
 [\n]										return NEW_LINE;
 [ \v\f]										{}
 [ ]*										{}
-[0-9]+										{ return INT_NUMBER; }
-[0-9]+l										return I64_NUMBER;
-([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+) 			return F64_NUMBER;
-([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+)f			return F32_NUMBER;
+[0-9]+										{ storei32(yytext); return INT_NUMBER; }
+[0-9]+l										{ storei64(yytext); return I64_NUMBER; }
+([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+) 			{ storef32(yytext); return F64_NUMBER; }
+([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+)f			{ storef64(yytext); return F32_NUMBER; }
 [a-zA-Z_][a-zA-Z_0-9]*						return IDENTIFIER;
 
 %%
@@ -113,42 +121,22 @@ void comment()
 
 	if (c != 0);
 		//putchar(c1);
-}	
-
-int main(int argc, const char* argv[])
-{
-	if (argc == 1) {
-		int ntoken, vtoken;
-		printf("No input file selected. Reading from STDIN.\n");
-		ntoken = yylex();
-		while (ntoken)
-		{
-			printf("%d\n", ntoken);
-			ntoken = yylex();
-		}
-	} else {
-		FILE* fPtr = fopen(argv[1], "r");
-		if (fPtr == NULL) {
-			printf("Failed to open file \"%s\". Terminating.\n", argv[1]);
-		} else {
-			yyin = fPtr;
-			yyout = stdout;
-			int ntoken;
-			while (1) {
-				ntoken = yylex();
-				if (ntoken == 0)
-					break;
-				if (ntoken != 108) {
-					printf("%d ", ntoken);
-				} else {
-					printf("\n");
-				}
-			}
-		}
-	}
-
-	return 0;
 }
+
+void storebool(int b)
+{
+	yylval.bval = b;
+}
+
+void storei32(char v[])
+{
+	int val = strtoimax()
+	yylval.i32val = atoi()
+}
+
+void storei64(char v[]);
+void storef32(char v[]);
+void storef64(char v[]);
 
 
 

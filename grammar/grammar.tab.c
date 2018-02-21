@@ -482,7 +482,7 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    74,    74,    75,    76
+       0,    83,    83,    84,    85
 };
 #endif
 
@@ -1500,7 +1500,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 79 "grammar.y" /* yacc.c:1906  */
+#line 88 "grammar.y" /* yacc.c:1906  */
 
 #include <stdio.h>
 

@@ -27,3 +27,9 @@ i32 func pseudoMult(i32 num1, num2)
 writeln(pseudoMult(10, 10) " == 100")
 
 noReturn()
+
+string upperCased := "HELLO WORLD!"
+call("user32.dll", "CharLowerBuffer", upperCased, |upperCased|)
+sysd("cd .. & mkdir mynewdir & cd mynewdir & \"hello there\" >> dumped.txt")
+var output := sysd("echo pwd")
+writeln("Current working directory: " + output)
