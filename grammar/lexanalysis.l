@@ -2,9 +2,11 @@
 #include <stdio.h>
 #include "grammar.tab.h"
 #include <inttypes.h>
-#include <errono.h>
+
+//#define YY_DECL int yylex()
 
 void comment();
+void comment2();
 
 void storebool(int b);
 void storei32(char v[]);
@@ -16,12 +18,20 @@ void storef64(char v[]);
 //#define YY_STDINIT
 %}
 
+%option yylineno
+
 %%
 "/*"										{ comment(); }
 (\t)*\/\/.*									{}
 
 L?\"(\\.|[^\\"])*\"							return SYM_STR_CHAR;
 L?\'(\\.|[^\\'])*\'							return SYM_STR_CHAR;
+
+[ \v\f]										{}
+[\r]*										{}
+[\n]*										return '\n';
+[\t]*										return '\t';
+[    ]*										return '\t';
 
 "string"									return PRIM_TYPE_STRING;
 "list"										return PRIM_TYPE_LIST;
@@ -40,40 +50,41 @@ L?\'(\\.|[^\\'])*\'							return SYM_STR_CHAR;
 "var"										return PRIM_TYPE_VAR;
 ":="										return OPERATOR_ASSIGNMENT;
 ":~"										return OPERATOR_DEEP_ASSIGNMENT;
-"~"											return OPERATOR_DEEP_COPY;
+"~"											return '~';//return OPERATOR_DEEP_COPY;
 "to"										return OPERATOR_SET_TO;
 "skip"										return OPERATOR_SET_SKIP;
 "from"										return OPERATOR_SET_FROM;
-"<"											return OPERATOR_BOOL_LESS;
+"<"											return '<';//OPERATOR_BOOL_LESS;
 "<="										return OPERATOR_BOOL_LESS_OR_EQ;
-">"											return OPERATOR_BOOL_GREAT;
+">"											return '>';//return OPERATOR_BOOL_GREAT;
 ">="										return OPERATOR_BOOL_GREAT_OR_EQ;
-"="											return OPERATOR_BOOL_EQ;
+"="											return '=';//OPERATOR_BOOL_EQ;
 "!="										return OPERATOR_BOOL_NEQ;
-"!"											return OPERATOR_BOOL_NEG;
+"!"											return '!';//OPERATOR_BOOL_NEG;
 "||"										return OPERATOR_LOGICAL_OR;
 "&&"										return OPERATOR_LOGICAL_AND;
-"@"											return OPERATOR_INDEX;
-"*"											return OPERATOR_MULT;
+"@"											return '@';//OPERATOR_INDEX;
+"*"											return '*';//return OPERATOR_MULT;
 "*="										return OPERATOR_MULT_ASSIGN;
-"/"											return OPERATOR_DIV;
+"/"											return '/';//return OPERATOR_DIV;
 "/="										return OPERATOR_DIV_ASSIGN;
-"+"											return OPERATOR_ADD;
+"+"											return '+';//OPERATOR_ADD;
 "+="										return OPERATOR_ADD_ASSIGN;
-"-"											return OPERATOR_SUB;
+"-"											return '-';//OPERATOR_SUB;
 "-="										return OPERATOR_SUB_ASSIGN;
-"^"											return OPERATOR_POW;
-"|"											return OPERATOR_LENGTH;
-"%"											return OPERATOR_MOD;
-"\""										return SYM_DOUBLE_QUOTE;
-"'"											return SYM_SINGLE_QUOTE;
-"["											return SYM_LIST_START;
-"]"											return SYM_LIST_END;
-"{"											return SYM_SET_START;
-"}"											return SYM_SET_END;
-","											return SYM_COMMA;
-"("											return SYM_PAR_OPEN;
-")"											return SYM_PAR_CLOSE;
+"^"											return '^';//OPERATOR_POW;
+"|"											return '|';//OPERATOR_LENGTH;
+"%"											return '%';//OPERATOR_MOD;
+"%="										return OPERATOR_MOD_ASSIGN;
+"\""										return '"';//SYM_DOUBLE_QUOTE;
+"'"											return '\'';//SYM_SINGLE_QUOTE;
+"["											return '[';//SYM_LIST_START;
+"]"											return ']';//SYM_LIST_END;
+"{"											return '{';//SYM_SET_START;
+"}"											return '}';//SYM_SET_END;
+","											return ',';//SYM_COMMA;
+"("											return '(';//SYM_PAR_OPEN;
+")"											return ')';//SYM_PAR_CLOSE;
 "foreach"									return KEY_FOR_LOOP;
 "if"										return KEY_IF;
 "else"										return KEY_ELSE;
@@ -81,17 +92,14 @@ L?\'(\\.|[^\\'])*\'							return SYM_STR_CHAR;
 "break"										return KEY_BREAK;
 "while"										return KEY_WHILE;
 "func"										return KEY_FUNC;
-"true"										{ storebool(1); return BOOL_NUMBER; }
-"false"										{ storebool(0); return BOOL_NUMBER; }
-[\t]										return TAB_BLOCK;
-[\n]										return NEW_LINE;
-[ \v\f]										{}
-[ ]*										{}
-[0-9]+										{ storei32(yytext); return INT_NUMBER; }
-[0-9]+l										{ storei64(yytext); return I64_NUMBER; }
-([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+) 			{ storef32(yytext); return F64_NUMBER; }
-([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+)f			{ storef64(yytext); return F32_NUMBER; }
+"true"										{ /*storebool(1);*/ return BOOL_NUMBER; }
+"false"										{ /*storebool(0); */return BOOL_NUMBER; /*[ ]*										{}*/}
+[0-9]+										{ return INT_NUMBER; }
+[0-9]+l										{ return I64_NUMBER; }
+([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+) 			{ /*storef32(yytext); */return F64_NUMBER; }
+([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+)f			{ return F32_NUMBER; }
 [a-zA-Z_][a-zA-Z_0-9]*						return IDENTIFIER;
+.											{ printf("Undefined character detected in lexer.\n"); }
 
 %%
 
@@ -123,7 +131,14 @@ void comment()
 		//putchar(c1);
 }
 
-void storebool(int b)
+void comment2() {
+	while (1) {
+		if (input() == '\n')
+			break;
+	}
+}
+
+/*void storebool(int b)
 {
 	yylval.bval = b;
 }
@@ -132,7 +147,7 @@ void storei32(char v[])
 {
 	int val = strtoimax()
 	yylval.i32val = atoi()
-}
+}*/
 
 void storei64(char v[]);
 void storef32(char v[]);

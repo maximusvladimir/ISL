@@ -1,0 +1,13 @@
+all: isl
+
+grammar.tab.c grammar.tab.h: grammar.y
+	bison -d grammar.y
+
+lex.yy.c: lexanalysis.l grammar.tab.h
+	flex lexanalysis.l
+
+isl: main.c lex.yy.c grammar.tab.c grammar.tab.h
+	gcc -o isl grammar.tab.c lex.yy.c main.c
+
+clean:
+	rm isl lex.yy.c grammar.tab.c grammar.tab.h

@@ -1,19 +1,16 @@
-// demo file
-/* Multilined
-commenting * / (bad terminal test)
-*/var myValue := 10
-
+var myValue := 10
+var myValue := 20
 func noReturn()
-	// this is a procedure
-	writeln("String concatenation test " + 123 + " hello world")
+	writeln()
+	writeln("Hello World")
 
 
-i8 getMyNumber()
+i8 func getMyNumber()
 	return 10
 
 writeln(getMyNumber())
 
-foreach i to 10
+foreach i from 0 to 10
 	writeln("Hello #" + i)
 
 i32 func pseudoMult(i32 num1, num2)
