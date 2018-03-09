@@ -13,7 +13,7 @@ writeln(getMyNumber())
 foreach i from 0 to 10
 	writeln("Hello #" + i)
 
-i32 func pseudoMult(i32 num1, num2)
+i32 func pseudoMult(ui32 num1, num2)
 	i32 result
 	num1 := abs(num1)
 	num2 := abs(num2)
@@ -21,7 +21,7 @@ i32 func pseudoMult(i32 num1, num2)
 		result += num2
 	return result
 
-writeln(pseudoMult(10, 10) " == 100")
+writeln(pseudoMult(10, 10) + " should equal 100")
 
 noReturn()
 

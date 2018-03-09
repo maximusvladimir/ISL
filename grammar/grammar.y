@@ -25,6 +25,7 @@ extern void yyerror(const char* s);
 %token OPERATOR_ASSIGNMENT OPERATOR_DEEP_ASSIGNMENT OPERATOR_SET_TO OPERATOR_SET_SKIP OPERATOR_SET_FROM
 %token OPERATOR_BOOL_LESS_OR_EQ OPERATOR_BOOL_GREAT_OR_EQ OPERATOR_BOOL_NEQ OPERATOR_LOGICAL_OR  OPERATOR_LOGICAL_AND
 %token OPERATOR_MULT_ASSIGN OPERATOR_DIV_ASSIGN OPERATOR_ADD_ASSIGN OPERATOR_SUB_ASSIGN	OPERATOR_MOD_ASSIGN
+%token OPERATOR_INC OPERATOR_DEC
 
 // Other Single Symbols
 %token SYM_STR_CHAR
@@ -57,9 +58,19 @@ statement
 	: var_type IDENTIFIER '\n' // PRIM_TYPE_VAR should NOT be allowed here. YACC isn't good at supporting this though.
 	| var_type IDENTIFIER OPERATOR_ASSIGNMENT gen_exp '\n'
 	| func_call '\n'
+	| assign_update_statement '\n'
 	| KEY_RETURN gen_exp '\n'
 	| KEY_RETURN '\n'
 	| block
+	;
+
+assign_update_statement
+	: IDENTIFIER OPERATOR_ASSIGNMENT gen_exp
+	| IDENTIFIER OPERATOR_MULT_ASSIGN gen_exp
+	| IDENTIFIER OPERATOR_DIV_ASSIGN gen_exp
+	| IDENTIFIER OPERATOR_ADD_ASSIGN gen_exp
+	| IDENTIFIER OPERATOR_SUB_ASSIGN gen_exp
+	| IDENTIFIER OPERATOR_MOD_ASSIGN gen_exp
 	;
 
 block
@@ -120,18 +131,79 @@ func_arg_list_tail
 	;
 
 gen_exp
-	: IDENTIFIER
-	| INT_NUMBER
+	:
+	| '(' gen_exp ')'
+	| logicor_or_math_exp
+	;
+
+logicor_or_math_exp
+	: logicand_or_math_exp
+	| logicor_or_math_exp OPERATOR_LOGICAL_OR logicand_or_math_exp
+	;
+
+logicand_or_math_exp
+	: logiceq_or_math_exp
+	| logicand_or_math_exp OPERATOR_LOGICAL_AND logiceq_or_math_exp
+	;
+
+logiceq_or_math_exp
+	: bool_or_math_exp
+	| logiceq_or_math_exp '=' bool_or_math_exp
+	| logiceq_or_math_exp OPERATOR_BOOL_NEQ bool_or_math_exp
+	;
+
+bool_or_math_exp
+	: add_math_exp
+	| bool_or_math_exp '<' add_math_exp
+	| bool_or_math_exp '>' add_math_exp
+	| bool_or_math_exp OPERATOR_BOOL_LESS_OR_EQ add_math_exp
+	| bool_or_math_exp OPERATOR_BOOL_GREAT_OR_EQ add_math_exp
+	;
+
+add_math_exp
+	: mult_math_exp
+	| add_math_exp '+' mult_math_exp
+	| add_math_exp '-' mult_math_exp
+	;
+
+mult_math_exp
+	: unary_exp
+	| mult_math_exp '*' unary_exp
+	| mult_math_exp '/' unary_exp
+	| mult_math_exp '%' unary_exp
+	;
+
+unary_exp
+	: postfix_exp
+	| '|' unary_exp '|'
+	| OPERATOR_INC unary_exp
+	| OPERATOR_DEC unary_exp
+	| unary_operator unary_exp
+	;
+
+unary_operator
+	: '~'
+	| '-'
+	| '+'
+	| '!'
+	;
+
+postfix_exp
+	: func_call
+	| IDENTIFIER
+	| constant
+	| postfix_exp OPERATOR_INC
+	| postfix_exp OPERATOR_DEC
+	;
+
+constant
+	: INT_NUMBER
 	| I64_NUMBER
 	| F32_NUMBER
 	| F64_NUMBER
 	| BOOL_NUMBER
-	| SYM_STR_CHAR
-	| func_call
+	| SYM_STR_CHAR // move to add only
 	;
-
-math_exp
-	: 
 
 var_type
 	: PRIM_TYPE_STRING

@@ -75,20 +75,22 @@ extern int yydebug;
     OPERATOR_ADD_ASSIGN = 285,
     OPERATOR_SUB_ASSIGN = 286,
     OPERATOR_MOD_ASSIGN = 287,
-    SYM_STR_CHAR = 288,
-    KEY_FOR_LOOP = 289,
-    KEY_IF = 290,
-    KEY_ELSE = 291,
-    KEY_RETURN = 292,
-    KEY_BREAK = 293,
-    KEY_WHILE = 294,
-    KEY_FUNC = 295,
-    IDENTIFIER = 296,
-    INT_NUMBER = 297,
-    I64_NUMBER = 298,
-    F32_NUMBER = 299,
-    F64_NUMBER = 300,
-    BOOL_NUMBER = 301
+    OPERATOR_INC = 288,
+    OPERATOR_DEC = 289,
+    SYM_STR_CHAR = 290,
+    KEY_FOR_LOOP = 291,
+    KEY_IF = 292,
+    KEY_ELSE = 293,
+    KEY_RETURN = 294,
+    KEY_BREAK = 295,
+    KEY_WHILE = 296,
+    KEY_FUNC = 297,
+    IDENTIFIER = 298,
+    INT_NUMBER = 299,
+    I64_NUMBER = 300,
+    F32_NUMBER = 301,
+    F64_NUMBER = 302,
+    BOOL_NUMBER = 303
   };
 #endif
 
@@ -105,7 +107,7 @@ union YYSTYPE
 	double f64val;
 	int bval;
 
-#line 109 "grammar.tab.h" /* yacc.c:1909  */
+#line 111 "grammar.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

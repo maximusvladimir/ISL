@@ -12,7 +12,7 @@ int usingFile;
 
 void yyerror(const char* s)
 {
-	fprintf(stderr, "Parse error: %s. Line #: %d\n", s, yylineno);
+	fprintf(stderr, "Parse error: %s. Line #%d\n", s, yylineno);
 	if (usingFile) {
 		fseek(fPtr, 0, SEEK_SET);
 
@@ -30,7 +30,7 @@ void yyerror(const char* s)
 		}
 	}
 	
-	//exit(1);
+	exit(1);
 }
 
 int main(int argc, const char* argv[])
@@ -38,7 +38,7 @@ int main(int argc, const char* argv[])
 	if (argc == 1) {
 		usingFile = 0;
 		int ntoken, vtoken;
-		printf("No input file selected. Reading from STDIN.\n");
+		fprintf(stderr, "No input file selected. Reading from STDIN.\n");
 		yyin = stdin;
 		while (!feof(yyin))
 		{
@@ -57,7 +57,7 @@ int main(int argc, const char* argv[])
 				yyparse();
 			}
 		}
-		printf("Successfully parsed input file.\n");
+		printf("Finished parsing input file.\n");
 	}
 
 	return 0;
