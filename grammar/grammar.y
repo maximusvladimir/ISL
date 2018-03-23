@@ -75,8 +75,16 @@ assign_update_statement
 
 block
 	: KEY_FOR_LOOP IDENTIFIER from_to '\n' sub_block
+	| KEY_IF gen_exp '\n' sub_block
+	| KEY_IF gen_exp '\n' sub_block else_chain
 	| var_type func_head
 	| func_head
+	;
+
+else_chain
+	: KEY_ELSE '\n' sub_block
+	| KEY_ELSE KEY_IF gen_exp '\n' sub_block
+	| KEY_ELSE KEY_IF gen_exp '\n' sub_block else_chain
 	;
 
 func_head
@@ -131,9 +139,30 @@ func_arg_list_tail
 	;
 
 gen_exp
-	:
-	| '(' gen_exp ')'
+	: '(' gen_exp ')'
 	| logicor_or_math_exp
+	| list_def
+	| set_def
+	;
+	
+list_def
+	: '[' gen_exp list_def_tail
+	| '[' ']'
+	;
+
+list_def_tail
+	: ',' gen_exp list_def_tail
+	| ']'
+	;
+
+set_def
+	: '{' gen_exp set_def_tail
+	| '{' '}'
+	;
+
+set_def_tail
+	: ',' gen_exp set_def_tail
+	| '}'
 	;
 
 logicor_or_math_exp
@@ -167,10 +196,15 @@ add_math_exp
 	;
 
 mult_math_exp
+	: pow_exp
+	| mult_math_exp '*' pow_exp
+	| mult_math_exp '/' pow_exp
+	| mult_math_exp '%' pow_exp
+	;
+	
+pow_exp
 	: unary_exp
-	| mult_math_exp '*' unary_exp
-	| mult_math_exp '/' unary_exp
-	| mult_math_exp '%' unary_exp
+	| pow_exp '^' unary_exp
 	;
 
 unary_exp
@@ -191,9 +225,17 @@ unary_operator
 postfix_exp
 	: func_call
 	| IDENTIFIER
+	| IDENTIFIER index
 	| constant
 	| postfix_exp OPERATOR_INC
 	| postfix_exp OPERATOR_DEC
+	;
+	
+index
+	: '@' constant
+	| '@' IDENTIFIER
+	| '@' '(' gen_exp ')'
+	| '@' '(' gen_exp ',' gen_exp ')'
 	;
 
 constant

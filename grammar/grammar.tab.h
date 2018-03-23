@@ -1,19 +1,19 @@
-/* A Bison parser, made by GNU Bison 3.0.4.  */
+/* A Bison parser, made by GNU Bison 2.7.  */
 
 /* Bison interface for Yacc-like parsers in C
-
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
-
+   
+      Copyright (C) 1984, 1989-1990, 2000-2012 Free Software Foundation, Inc.
+   
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
-
+   
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-
+   
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
@@ -26,13 +26,13 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-
+   
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
 #ifndef YY_YY_GRAMMAR_TAB_H_INCLUDED
 # define YY_YY_GRAMMAR_TAB_H_INCLUDED
-/* Debug traces.  */
+/* Enabling traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
 #endif
@@ -40,66 +40,67 @@
 extern int yydebug;
 #endif
 
-/* Token type.  */
+/* Tokens.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
-  enum yytokentype
-  {
-    PRIM_TYPE_STRING = 258,
-    PRIM_TYPE_LIST = 259,
-    PRIM_TYPE_SET = 260,
-    PRIM_TYPE_I8 = 261,
-    PRIM_TYPE_I16 = 262,
-    PRIM_TYPE_I32 = 263,
-    PRIM_TYPE_I64 = 264,
-    PRIM_TYPE_UI8 = 265,
-    PRIM_TYPE_UI16 = 266,
-    PRIM_TYPE_UI32 = 267,
-    PRIM_TYPE_UI64 = 268,
-    PRIM_TYPE_F32 = 269,
-    PRIM_TYPE_F64 = 270,
-    PRIM_TYPE_BOOL = 271,
-    PRIM_TYPE_VAR = 272,
-    OPERATOR_ASSIGNMENT = 273,
-    OPERATOR_DEEP_ASSIGNMENT = 274,
-    OPERATOR_SET_TO = 275,
-    OPERATOR_SET_SKIP = 276,
-    OPERATOR_SET_FROM = 277,
-    OPERATOR_BOOL_LESS_OR_EQ = 278,
-    OPERATOR_BOOL_GREAT_OR_EQ = 279,
-    OPERATOR_BOOL_NEQ = 280,
-    OPERATOR_LOGICAL_OR = 281,
-    OPERATOR_LOGICAL_AND = 282,
-    OPERATOR_MULT_ASSIGN = 283,
-    OPERATOR_DIV_ASSIGN = 284,
-    OPERATOR_ADD_ASSIGN = 285,
-    OPERATOR_SUB_ASSIGN = 286,
-    OPERATOR_MOD_ASSIGN = 287,
-    OPERATOR_INC = 288,
-    OPERATOR_DEC = 289,
-    SYM_STR_CHAR = 290,
-    KEY_FOR_LOOP = 291,
-    KEY_IF = 292,
-    KEY_ELSE = 293,
-    KEY_RETURN = 294,
-    KEY_BREAK = 295,
-    KEY_WHILE = 296,
-    KEY_FUNC = 297,
-    IDENTIFIER = 298,
-    INT_NUMBER = 299,
-    I64_NUMBER = 300,
-    F32_NUMBER = 301,
-    F64_NUMBER = 302,
-    BOOL_NUMBER = 303
-  };
+   /* Put the tokens into the symbol table, so that GDB and other debuggers
+      know about them.  */
+   enum yytokentype {
+     PRIM_TYPE_STRING = 258,
+     PRIM_TYPE_LIST = 259,
+     PRIM_TYPE_SET = 260,
+     PRIM_TYPE_I8 = 261,
+     PRIM_TYPE_I16 = 262,
+     PRIM_TYPE_I32 = 263,
+     PRIM_TYPE_I64 = 264,
+     PRIM_TYPE_UI8 = 265,
+     PRIM_TYPE_UI16 = 266,
+     PRIM_TYPE_UI32 = 267,
+     PRIM_TYPE_UI64 = 268,
+     PRIM_TYPE_F32 = 269,
+     PRIM_TYPE_F64 = 270,
+     PRIM_TYPE_BOOL = 271,
+     PRIM_TYPE_VAR = 272,
+     OPERATOR_ASSIGNMENT = 273,
+     OPERATOR_DEEP_ASSIGNMENT = 274,
+     OPERATOR_SET_TO = 275,
+     OPERATOR_SET_SKIP = 276,
+     OPERATOR_SET_FROM = 277,
+     OPERATOR_BOOL_LESS_OR_EQ = 278,
+     OPERATOR_BOOL_GREAT_OR_EQ = 279,
+     OPERATOR_BOOL_NEQ = 280,
+     OPERATOR_LOGICAL_OR = 281,
+     OPERATOR_LOGICAL_AND = 282,
+     OPERATOR_MULT_ASSIGN = 283,
+     OPERATOR_DIV_ASSIGN = 284,
+     OPERATOR_ADD_ASSIGN = 285,
+     OPERATOR_SUB_ASSIGN = 286,
+     OPERATOR_MOD_ASSIGN = 287,
+     OPERATOR_INC = 288,
+     OPERATOR_DEC = 289,
+     SYM_STR_CHAR = 290,
+     KEY_FOR_LOOP = 291,
+     KEY_IF = 292,
+     KEY_ELSE = 293,
+     KEY_RETURN = 294,
+     KEY_BREAK = 295,
+     KEY_WHILE = 296,
+     KEY_FUNC = 297,
+     IDENTIFIER = 298,
+     INT_NUMBER = 299,
+     I64_NUMBER = 300,
+     F32_NUMBER = 301,
+     F64_NUMBER = 302,
+     BOOL_NUMBER = 303
+   };
 #endif
 
-/* Value type.  */
-#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
-union YYSTYPE
+#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
+typedef union YYSTYPE
 {
-#line 12 "grammar.y" /* yacc.c:1909  */
+/* Line 2058 of yacc.c  */
+#line 12 "grammar.y"
 
 	int i32val;
 	long i64val;
@@ -107,17 +108,29 @@ union YYSTYPE
 	double f64val;
 	int bval;
 
-#line 111 "grammar.tab.h" /* yacc.c:1909  */
-};
 
-typedef union YYSTYPE YYSTYPE;
+/* Line 2058 of yacc.c  */
+#line 114 "grammar.tab.h"
+} YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
+# define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
-
 extern YYSTYPE yylval;
 
+#ifdef YYPARSE_PARAM
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void *YYPARSE_PARAM);
+#else
+int yyparse ();
+#endif
+#else /* ! YYPARSE_PARAM */
+#if defined __STDC__ || defined __cplusplus
 int yyparse (void);
+#else
+int yyparse ();
+#endif
+#endif /* ! YYPARSE_PARAM */
 
 #endif /* !YY_YY_GRAMMAR_TAB_H_INCLUDED  */
