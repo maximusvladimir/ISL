@@ -10,10 +10,6 @@ else if 10 = 11
 	writeln("10 = 11!")
 	if (1 = 1)
 		writeln("Okay good.")
-	else if 2 = 2
-		writeln("Also good.")
-	else
-		writeln("Test.")
 else
 	writeln("Something weird happened.")
 
