@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "tree.h"
 
 extern int yylex();
 extern int yyparse();
@@ -197,19 +198,19 @@ add_math_exp
 
 mult_math_exp
 	: pow_exp
-	| mult_math_exp '*' pow_exp
-	| mult_math_exp '/' pow_exp
-	| mult_math_exp '%' pow_exp
+	| mult_math_exp '*' pow_exp	{ $$ = multNode($1, $2);	}
+	| mult_math_exp '/' pow_exp	{ $$ = divNode($1, $2);		}
+	| mult_math_exp '%' pow_exp	{ $$ = modNode($1, $2);		}
 	;
 	
 pow_exp
-	: unary_exp
-	| pow_exp '^' unary_exp
+	: INT_NUMBER	{ $$ = singleValue(yylval.i32value); }//unary_exp
+	| pow_exp '^' unary_exp	{ $$ = powNode($1, $2);	}
 	;
 
 unary_exp
 	: postfix_exp
-	| '|' unary_exp '|'
+	| '|' unary_exp '|'			{ $$ = lenNode($1, $2); }
 	| OPERATOR_INC unary_exp
 	| OPERATOR_DEC unary_exp
 	| unary_operator unary_exp
@@ -239,7 +240,7 @@ index
 	;
 
 constant
-	: INT_NUMBER
+	: INT_NUMBER	{ $$ = singleValue(yylval.i32value); }
 	| I64_NUMBER
 	| F32_NUMBER
 	| F64_NUMBER
