@@ -192,8 +192,8 @@ bool_or_math_exp
 
 add_math_exp
 	: mult_math_exp
-	| add_math_exp '+' mult_math_exp
-	| add_math_exp '-' mult_math_exp
+	| add_math_exp '+' mult_math_exp { $$ = addNode($1, $2); }
+	| add_math_exp '-' mult_math_exp { $$ = subNode($1, $2); }
 	;
 
 mult_math_exp
@@ -204,7 +204,7 @@ mult_math_exp
 	;
 	
 pow_exp
-	: INT_NUMBER	{ $$ = singleValue(yylval.i32value); }//unary_exp
+	: unary_exp
 	| pow_exp '^' unary_exp	{ $$ = powNode($1, $2);	}
 	;
 
