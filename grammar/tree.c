@@ -1,5 +1,6 @@
 #include "tree.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 Node* createNode() {
     Node* n = (Node*)malloc(sizeof(Node*));
@@ -84,7 +85,7 @@ void traverseTreeSub(Node* root, int level) {
         return;
 
     if (root->left != NULL) {
-        traverseTree(root->left, level + 1);
+        traverseTreeSub(root->left, level + 1);
     }
 
     tabHelper(level);
@@ -94,7 +95,7 @@ void traverseTreeSub(Node* root, int level) {
     } else if (root->type == N_LEN) {
         printf("|\n");
         if (root->center != NULL) {
-            traverseTree(root->center, level + 1);
+            traverseTreeSub(root->center, level + 1);
         }
         tabHelper(level);
         printf("|\n");
@@ -113,7 +114,7 @@ void traverseTreeSub(Node* root, int level) {
                 printf("-");
                 break;
             case N_MOD:
-                printf("%");
+                printf("%%");
                 break;  
         }
     }
@@ -121,7 +122,7 @@ void traverseTreeSub(Node* root, int level) {
     printf("\n");
 
     if (root->right != NULL) {
-        traverseTree(root->right, level + 1);
+        traverseTreeSub(root->right, level + 1);
     }
 }
 

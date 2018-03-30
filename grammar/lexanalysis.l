@@ -1,4 +1,5 @@
 %{
+#include "tree.h"
 #include <stdio.h>
 #include "grammar.tab.h"
 #include <inttypes.h>

@@ -26,7 +26,7 @@ Node* multNode(Node* n1, Node* n2);
 Node* divNode(Node* n1, Node* n2);
 Node* modNode(Node* n1, Node* n2);
 Node* powNode(Node* n1, Node* n2);
-Node* lenNode(Node* n1, Node* n2);
+Node* lenNode(Node* n1);
 
 void traverseTree(Node* root);
 
