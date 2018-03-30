@@ -1,6 +1,7 @@
 #include "tree.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 
 Node* createNode() {
     Node* n = (Node*)malloc(sizeof(Node*));
@@ -17,53 +18,35 @@ Node* singleValue(double value) {
     return n;
 }
 
-
-Node* addNode(Node* n1, Node* n2) {
+Node* binary(Node* n1, Node* n2, int type) {
     Node* n = createNode();
     n->left = n1;
     n->right = n2;
-    n->type = N_ADD;
-    return n;
+    n->type = type;
+}
+
+Node* addNode(Node* n1, Node* n2) {
+    return binary(n1, n2, N_ADD);
 }
 
 Node* subNode(Node* n1, Node* n2) {
-    Node* n = createNode();
-    n->left = n1;
-    n->right = n2;
-    n->type = N_SUB;
-    return n;
+    return binary(n1, n2, N_SUB);
 }
 
 Node* multNode(Node* n1, Node* n2) {
-    Node* n = createNode();
-    n->left = n1;
-    n->right = n2;
-    n->type = N_MULT;
-    return n;
+    return binary(n1, n2, N_MULT);
 }
 
 Node* divNode(Node* n1, Node* n2) {
-    Node* n = createNode();
-    n->left = n1;
-    n->right = n2;
-    n->type = N_DIV;
-    return n;
+    return binary(n1, n2, N_DIV);
 }
 
 Node* modNode(Node* n1, Node* n2) {
-    Node* n = createNode();
-    n->left = n1;
-    n->right = n2;
-    n->type = N_MOD;
-    return n;
+    return binary(n1, n2, N_MOD);
 }
 
 Node* powNode(Node* n1, Node* n2) {
-    Node* n = createNode();
-    n->left = n1;
-    n->right = n2;
-    n->type = N_POW;
-    return n;
+    return binary(n1, n2, N_POW);
 }
 
 Node* lenNode(Node* n1) {
@@ -71,6 +54,16 @@ Node* lenNode(Node* n1) {
     n->center = n1;
     n->type = N_LEN;
     return n;
+}
+
+
+Assignment* createAssignment(char* varName, Node* right, int type, int deftype) {
+    Assignment* a = (Assignment*)malloc(sizeof(Assignment*));
+    a->varName = varName;
+    a->right = right;
+    a->type = type;
+    a->deftype;
+    return a;
 }
 
 void tabHelper(int l) {

@@ -36,12 +36,13 @@ extern void yyerror(const char* s);
 
 // Others
 %token IDENTIFIER
-%token <i32val> INT_NUMBER
+%token INT_NUMBER
+%type <tree> constant
+%type <tree> pow_exp mult_math_exp add_math_exp
 %token <i64val> I64_NUMBER
 %token <f32val> F32_NUMBER
 %token <f64val> F64_NUMBER
 %token <bval> BOOL_NUMBER
-
 %start program
 %%
 
@@ -192,25 +193,25 @@ bool_or_math_exp
 
 add_math_exp
 	: mult_math_exp
-	| add_math_exp '+' mult_math_exp { $$ = addNode($1, $2); }
-	| add_math_exp '-' mult_math_exp { $$ = subNode($1, $2); }
+	| add_math_exp '+' mult_math_exp { $$ = addNode($1, $3); }
+	| add_math_exp '-' mult_math_exp { $$ = subNode($1, $3); }
 	;
 
 mult_math_exp
 	: pow_exp
-	| mult_math_exp '*' pow_exp	{ $$ = multNode($1, $2);	}
-	| mult_math_exp '/' pow_exp	{ $$ = divNode($1, $2);		}
-	| mult_math_exp '%' pow_exp	{ $$ = modNode($1, $2);		}
+	| mult_math_exp '*' pow_exp	{ $$ = multNode($1, $3);	}
+	| mult_math_exp '/' pow_exp	{ $$ = divNode($1, $3);		}
+	| mult_math_exp '%' pow_exp	{ $$ = modNode($1, $3);		}
 	;
 	
 pow_exp
 	: unary_exp
-	| pow_exp '^' unary_exp	{ $$ = powNode($1, $2);	}
+	| pow_exp '^' unary_exp	{ $$ = powNode($1, $3);	}
 	;
 
 unary_exp
 	: postfix_exp
-	| '|' unary_exp '|'			{ $$ = lenNode($1, $2); }
+	| '|' unary_exp '|'			{ $$ = lenNode($1); }
 	| OPERATOR_INC unary_exp
 	| OPERATOR_DEC unary_exp
 	| unary_operator unary_exp
