@@ -9,6 +9,7 @@
 #define N_MOD       5
 #define N_POW       6
 #define N_LEN       7
+#define N_IDEN      8
 
 #define A_REG       0
 #define A_ADD       1
@@ -39,6 +40,7 @@ typedef struct Node {
     struct Node* center;
     int type;
     double value;
+    char* identifier;
 } Node;
 
 typedef struct Assignment {
@@ -47,6 +49,58 @@ typedef struct Assignment {
     int type;    // the type of the operator. Example:    ...  *=  ...,   ...  ~= ...
     int deftype; // the type of define.       Example: var ... :=  ..., i8 ... := ...
 } Assignment;
+
+typedef struct FunctionCallParam {
+    Node* value;
+    struct FunctionCallParam next;
+} FunctionCallParam;
+
+typedef struct FunctionCall {
+    char* functionName;
+    FunctionCallParam params;
+} FunctionCall;
+
+typedef struct FromTo {
+    Node* start;
+    Node* end;
+} FromTo;
+
+typedef struct ForLoop {
+    char* identifier;
+    FromTo range;
+    RootBlockList contents;
+} ForLoop;
+
+typedef struct IfBlock {
+} IfBlock;
+
+typedef struct FunctionParam {
+    int type;   // the type of variable (see DT_...).
+    char* name; // the identifier of the function variable.
+    struct FunctionParam next;
+} FunctionParam;
+
+typedef struct FuncDecl {
+    int type; // the type of return (see DT_...).
+    char* name;
+    FunctionParam params;
+} FuncDecl;
+
+typedef struct Block {
+    ForLoop loop;
+    IfBlock ifblock;
+    FuncDecl func;
+} Block;
+
+typedef struct Statement {
+    FunctionCall call;
+    Assignment assignment;
+} Statement;
+
+typedef struct RootBlockList {
+    struct RootBlockList next;
+    Statement line;
+} StatementBlock;
 
 Node* createNode();
 Node* singleValue(double value);
