@@ -1,7 +1,7 @@
 #ifndef __TREE_HEADER
 #define __TREE_HEADER
 
-#define N_CONSTANT  0       // Numeric constant
+#define N_CONSTANT  0       // Numeric constant (not used).
 #define N_MUL       1       // Math multiplication operator
 #define N_DIV       2       // Math division operator
 #define N_ADD       3       // Math add operator
@@ -27,6 +27,15 @@
 #define N_BEX_EQU   23      // Boolean =
 #define N_BEX_AND   24      // Boolean &&
 #define N_BEX_ORR   25      // Boolean ||
+#define N_SEQ_CHN   26      // Sequence (list) chain (aka linked list)
+#define N_SET_CHN   27      // Set chain (aka linked list)
+#define N_FUN_CAL   28      // Function call (left: function identifier, right: argument list (or null)).
+#define N_FUN_ARG   29      // Function call argument list (left: first parameter, right: next parameter (or null)).
+#define N_WFT_SKP   30      // From-To skip construct.
+#define N_WFT_NSP   31      // From-To without the skip construct.
+#define N_DEC_VAR   32      // A variable declaration that may or may not have a type. (left: type, right: identifier).
+#define N_FUN_CAG   33      // Function call argument list.
+#define N_DEC_DEC   34      // Filler decl.
 
 #define A_REG       100
 #define A_ADD       101
@@ -35,6 +44,7 @@
 #define A_DIV       104
 #define A_MOD       105
 #define A_DEP       106
+#define A_NON       107
 
 #define DT_NONE     1000
 #define DT_VAR      1001
@@ -78,15 +88,14 @@ typedef struct Plane {
 class Driver {
     public:
         Driver();
-        void createDecl(int type, char* ident);
+        Plane* createDecl(int type, char* ident, int a_type, Plane* right_side);
         Plane* mathAdd(Plane* p1, Plane* p2);
         Plane* mathSub(Plane* p1, Plane* p2);
         Plane* mathDiv(Plane* p1, Plane* p2);
         Plane* mathMul(Plane* p1, Plane* p2);
         Plane* mathMod(Plane* p1, Plane* p2);
         Plane* mathPow(Plane* p1, Plane* p2);
-        void mathLen();
-        //void identifier(char* name);
+        Plane* mathLen(Plane* p1);
         Plane* i32(int val);
         Plane* i64(long long val);
         Plane* f32(float val);
@@ -97,11 +106,19 @@ class Driver {
         Plane* index1(Plane* p);
         Plane* incDecOpt(Plane* obj, int opt);
         Plane* bex(Plane* p1, Plane* p2, int opt);
+        Plane* abtSeq(Plane* p1, Plane* p2);
+        Plane* abtSet(Plane* p1, Plane* p2);
+        Plane* funcCall(char* i, Plane* p1);
+        Plane* funcArg(Plane* p1, Plane* p2);
+        Plane* fromToConstruct(Plane* p1, Plane* p2);
+        Plane* fromTo(Plane* p1, Plane* p2);
+        Plane* funcArgDec(char* arg_name, int arg_type, Plane* arg_follow);
+        void dumpStatement(Plane* p);
         void finalizeTree();
 };
 
 void noImplement(const char* s);
 
-//void traverseTree(Node* root);
+//void traverseTree(Plane* root);
 
 #endif

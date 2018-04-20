@@ -26,8 +26,85 @@ Driver::Driver() {
     REG_COUNT = 0;
 }
 
-void Driver::createDecl(int type, char* ident) {
-    //printf("Declaring %s of type %d.\n", ident, type);
+Plane* Driver::createDecl(int type2, char* ident, int a_type, Plane* right_side) {
+    Plane* id = setupPlane(N_IDEN);
+    id->val.str = ident;
+
+    Plane* type = setupPlane(N_DEC_DEC);
+    type->val.i32 = type2;
+
+    Plane* i = setupPlane(N_DEC_VAR);
+    i->left = type;
+    i->right = id;
+
+    Plane* r = setupPlane(a_type);
+    r->left = i;
+    r->right = right_side;
+
+    return r;
+}
+
+Plane* Driver::funcArgDec(char* arg_name, int arg_type, Plane* arg_follow) {
+    Plane* id = setupPlane(N_IDEN);
+    id->val.str = arg_name;
+
+    Plane* type = setupPlane(N_DEC_DEC);
+    type->val.i32 = arg_type;
+
+    Plane* i = setupPlane(N_DEC_VAR);
+    i->left = type;
+    i->right = id;
+    
+    Plane* li = setupPlane(N_FUN_CAG);
+    li->left = i;
+    li->right = arg_follow;
+
+    return li;
+}
+
+Plane* Driver::fromTo(Plane* p1, Plane* p2) {
+    Plane* i = setupPlane(N_WFT_NSP);
+    i->left = p1;
+    i->right = p2;
+    return i;
+}
+
+Plane* Driver::fromToConstruct(Plane* p1, Plane* p2) {
+    Plane* i = setupPlane(N_WFT_SKP);
+    i->left = p1;
+    i->right = p2;
+    return i;
+}
+
+Plane* Driver::funcCall(char* i, Plane* p1) {
+    Plane* ident = setupPlane(N_IDEN);
+    ident->val.str = i;
+    
+    Plane* func = setupPlane(N_FUN_CAL);
+    func->left = ident;
+    func->right = p1;
+    return func;
+}
+
+Plane* Driver::funcArg(Plane* p1, Plane* p2) {
+    Plane* i = setupPlane(N_FUN_ARG);
+    i->left = p1;
+    i->right = p2;
+    return i;
+}
+
+Plane* Driver::abtSeq(Plane* p1, Plane* p2) {
+    Plane* i = setupPlane(N_SEQ_CHN);
+    i->left = p1;
+    i->right = p2;
+    return i;
+}
+
+Plane* Driver::abtSet(Plane* p1, Plane* p2) {
+    Plane* i = setupPlane(N_SET_CHN);
+    i->left = p1;
+    i->right = p2;
+    return i;
 }
 
 Plane* Driver::bex(Plane* p1, Plane* p2, int opt) {
@@ -78,8 +155,10 @@ Plane* Driver::mathPow(Plane* p1, Plane* p2) {
     i->right = p2;
     return i;
 }
-void Driver::mathLen() {
-    //printf("len\n");
+Plane* Driver::mathLen(Plane* p1) {
+    Plane* i = setupPlane(N_LEN);
+    i->left = p1;
+    return i;
 }
 
 /*Plane* Driver::identifier(char* name) {
@@ -157,7 +236,7 @@ void noImplement(const char* s) {
     printf("%s not yet implemented.\n", s);
 }
 
-/*void traverseTreeSub(Node* root, int level) {
+void traverseTreeSub(Plane* root, int level) {
     if (root == NULL)
         return;
 
@@ -168,32 +247,9 @@ void noImplement(const char* s) {
     tabHelper(level);
 
     if (root->type == N_CONSTANT) {
-        printf("%f", root->value);
-    } else if (root->type == N_LEN) {
-        printf("|\n");
-        if (root->center != NULL) {
-            traverseTreeSub(root->center, level + 1);
-        }
-        tabHelper(level);
-        printf("|\n");
+        printf("'%f'", (float)root->val.i32);
     } else {
-        switch (root->type) {
-            case N_MULT:
-                printf("*");
-                break;
-            case N_DIV:
-                printf("/");
-                break;
-            case N_ADD:
-                printf("+");
-                break;
-            case N_SUB:
-                printf("-");
-                break;
-            case N_MOD:
-                printf("%%");
-                break;  
-        }
+        printf("%d", root->type);
     }
 
     printf("\n");
@@ -203,11 +259,11 @@ void noImplement(const char* s) {
     }
 }
 
-void traverseTree(Node* root) {
-    traverseTreeSub(root, 0);
-}*/
 
-
+void Driver::dumpStatement(Plane* r) {
+    traverseTreeSub(r, 0);
+    printf("\n\n");
+}
 
 
 

@@ -59,6 +59,19 @@ extern void yyerror(Driver d, char const* s);
 %type <plane>	logiceq_or_math_exp
 %type <plane>	logicand_or_math_exp
 %type <plane>	logicor_or_math_exp
+%type <plane>	list_def
+%type <plane>	list_def_tail
+%type <plane>	set_def
+%type <plane>	set_def_tail
+%type <plane>	gen_exp
+%type <plane>	func_arg_list_tail
+%type <plane>	func_arg_list
+%type <plane>	func_call
+%type <plane>	from_to
+%type <plane>	from_to_base
+%type <plane>	func_vars_tail
+%type <plane>	func_vars
+%type <plane>	statement
 
 %start program
 %%
@@ -68,19 +81,20 @@ program
 	;
 
 rootblock_list
-	: statement rootblock_list
-	| statement
+	: statement rootblock_list									{ driver.dumpStatement($1);	}
+	| statement													{ driver.dumpStatement($1);	}
 	| '\n'
 	;
 
 statement
-	: var_type IDENTIFIER '\n' 								{ driver.createDecl($1, $2); }
-	| var_type IDENTIFIER OPERATOR_ASSIGNMENT gen_exp '\n'	{ driver.createDecl($1, $2); }
-	| func_call '\n'
-	| assign_update_statement '\n'
-	| KEY_RETURN gen_exp '\n'
-	| KEY_RETURN '\n'
-	| block
+	: var_type IDENTIFIER '\n' 									{ $$ = driver.createDecl($1, $2, A_NON, NULL);	}
+	| var_type IDENTIFIER OPERATOR_ASSIGNMENT gen_exp '\n'		{ $$ = driver.createDecl($1, $2, A_REG, $4);	}
+	| var_type IDENTIFIER OPERATOR_DEEP_ASSIGNMENT gen_exp '\n'	{ $$ = driver.createDecl($1, $2, A_DEP, $4);	}
+	| func_call '\n'											{ $$ = $1;										}
+	| assign_update_statement '\n'								{ $$ = NULL; /* TODO */							}
+	| KEY_RETURN gen_exp '\n'									{ $$ = NULL; /* TODO */							}
+	| KEY_RETURN '\n'											{ $$ = NULL; /* TODO */							}
+	| block														{ $$ = NULL; /* TODO */							}
 	;
 
 assign_update_statement
@@ -122,46 +136,46 @@ maybe_sub_block
 	;
 
 func_vars
-	: var_type IDENTIFIER
-	| var_type IDENTIFIER func_vars_tail// PRIM_TYPE_VAR should NOT be allowed here. YACC isn't good at supporting this though.
+	: var_type IDENTIFIER								{ $$ = driver.funcArgDec($2, $1, NULL);		}
+	| var_type IDENTIFIER func_vars_tail				{ $$ = driver.funcArgDec($2, $1, $3);		} // PRIM_TYPE_VAR should NOT be allowed here. YACC isn't good at supporting this though.
 	;
 
 func_vars_tail
-	: ',' IDENTIFIER func_vars_tail
-	| ',' IDENTIFIER
-	| ',' var_type IDENTIFIER func_vars_tail
-	| ',' var_type IDENTIFIER
+	: ',' IDENTIFIER func_vars_tail						{ $$ = driver.funcArgDec($2, DT_NONE, $3);	}
+	| ',' IDENTIFIER									{ $$ = driver.funcArgDec($2, DT_NONE, NULL);}
+	| ',' var_type IDENTIFIER func_vars_tail			{ $$ = driver.funcArgDec($3, $2, $4);		}
+	| ',' var_type IDENTIFIER							{ $$ = driver.funcArgDec($3, $2, NULL);		}
 	;
 
 from_to_base
-	: OPERATOR_SET_FROM gen_exp OPERATOR_SET_TO gen_exp
+	: OPERATOR_SET_FROM gen_exp OPERATOR_SET_TO gen_exp	{ $$ = driver.fromTo($2, $4);				}
 	;
 
 from_to
-	: from_to_base OPERATOR_SET_SKIP gen_exp
-	| from_to_base
+	: from_to_base OPERATOR_SET_SKIP gen_exp			{ $$ = driver.fromToConstruct($1, $3);		}
+	| from_to_base										{ $$ = driver.fromToConstruct($1, NULL);	}
 	;
 
 func_call
-	: IDENTIFIER '(' func_arg_list ')'
-	| IDENTIFIER '(' ')'
+	: IDENTIFIER '(' func_arg_list ')'	{ $$ = driver.funcCall($1, $3);		}
+	| IDENTIFIER '(' ')'				{ $$ = driver.funcCall($1, NULL);	}
 	;
 
 func_arg_list
-	: gen_exp func_arg_list_tail
-	| gen_exp
+	: gen_exp func_arg_list_tail		{ $$ = driver.funcArg($1, $2);		}
+	| gen_exp							{ $$ = $1;							}
 	;
 
 func_arg_list_tail
-	: ',' gen_exp func_arg_list_tail
-	| ',' gen_exp
+	: ',' gen_exp func_arg_list_tail	{ $$ = driver.funcArg($2, $3);		}
+	| ',' gen_exp						{ $$ = $2;							}
 	;
 
 gen_exp
 	: '(' gen_exp ')'			{ $$ = $2;							}
-	| logicor_or_math_exp		{ $$ = 	
-	| list_def
-	| set_def
+	| logicor_or_math_exp		{ $$ = $1;							}
+	| list_def					{ $$ = $1;							}
+	| set_def					{ $$ = $1;							}
 	;
 	
 list_def
@@ -228,7 +242,7 @@ pow_exp
 
 unary_exp
 	: postfix_exp				{ $$ = $1;								}
-	| '|' unary_exp '|'			{ driver.mathLen();						}
+	| '|' unary_exp '|'			{ $$ = driver.mathLen($2);				}
 	| OPERATOR_INC unary_exp	{ $$ = driver.incDecOpt($2, N_PRE_INC); }
 	| OPERATOR_DEC unary_exp	{ $$ = driver.incDecOpt($2, N_PRE_DEC);	}
 	| unary_operator unary_exp	{ $$ = driver.incDecOpt($2, $1);		}
@@ -242,7 +256,7 @@ unary_operator
 	;
 
 postfix_exp
-	: func_call					{ $$ = NULL; /* TODO */					}
+	: func_call					{ $$ = $1;								}
 	| IDENTIFIER				{ $$ = driver.index2($1);				}
 	| IDENTIFIER index			{ $$ = driver.index2($1); /* TODO */	}
 	| constant					{ $$ = $1;								}
