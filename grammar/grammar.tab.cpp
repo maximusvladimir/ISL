@@ -72,9 +72,9 @@ extern int yylex();
 extern int yyparse();
 extern FILE* yyin;
 
-extern void yyerror(Driver d, const char* s);
+extern void yyerror(Driver d, char const* s);
 
-#line 78 "grammar.tab.c" /* yacc.c:339  */
+#line 78 "grammar.tab.cpp" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -93,9 +93,9 @@ extern void yyerror(Driver d, const char* s);
 #endif
 
 /* In a future release of Bison, this section will be replaced
-   by #include "grammar.tab.h".  */
-#ifndef YY_YY_GRAMMAR_TAB_H_INCLUDED
-# define YY_YY_GRAMMAR_TAB_H_INCLUDED
+   by #include "grammar.tab.hpp".  */
+#ifndef YY_YY_GRAMMAR_TAB_HPP_INCLUDED
+# define YY_YY_GRAMMAR_TAB_HPP_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -171,8 +171,9 @@ union YYSTYPE
 	double f64val;
 	int bval;
 	char* str;
+	Plane* plane;
 
-#line 176 "grammar.tab.c" /* yacc.c:355  */
+#line 177 "grammar.tab.cpp" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -185,11 +186,11 @@ extern YYSTYPE yylval;
 
 int yyparse (Driver driver);
 
-#endif /* !YY_YY_GRAMMAR_TAB_H_INCLUDED  */
+#endif /* !YY_YY_GRAMMAR_TAB_HPP_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
 
-#line 193 "grammar.tab.c" /* yacc.c:358  */
+#line 194 "grammar.tab.cpp" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -491,19 +492,19 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    51,    51,    55,    56,    57,    61,    62,    63,    64,
-      65,    66,    67,    71,    72,    73,    74,    75,    76,    80,
-      81,    82,    83,    84,    88,    89,    90,    94,    95,    99,
-     100,   104,   105,   109,   110,   114,   115,   116,   117,   121,
-     125,   126,   130,   131,   135,   136,   140,   141,   145,   146,
-     147,   148,   152,   153,   157,   158,   162,   163,   167,   168,
-     172,   173,   177,   178,   182,   183,   184,   188,   189,   190,
-     191,   192,   196,   197,   198,   202,   203,   204,   205,   209,
-     210,   214,   215,   216,   217,   218,   222,   223,   224,   225,
-     229,   230,   231,   232,   233,   234,   238,   239,   240,   241,
+       0,    67,    67,    71,    72,    73,    77,    78,    79,    80,
+      81,    82,    83,    87,    88,    89,    90,    91,    92,    96,
+      97,    98,    99,   100,   104,   105,   106,   110,   111,   115,
+     116,   120,   121,   125,   126,   130,   131,   132,   133,   137,
+     141,   142,   146,   147,   151,   152,   156,   157,   161,   162,
+     163,   164,   168,   169,   173,   174,   178,   179,   183,   184,
+     188,   189,   193,   194,   198,   199,   200,   204,   205,   206,
+     207,   208,   212,   213,   214,   218,   219,   220,   221,   225,
+     226,   230,   231,   232,   233,   234,   238,   239,   240,   241,
      245,   246,   247,   248,   249,   250,   254,   255,   256,   257,
-     258,   259,   260,   261,   262,   263,   264,   265,   266,   267,
-     268
+     261,   262,   263,   264,   265,   266,   270,   271,   272,   273,
+     274,   275,   276,   277,   278,   279,   280,   281,   282,   283,
+     284
 };
 #endif
 
@@ -1475,80 +1476,374 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-        case 73:
-#line 197 "grammar.y" /* yacc.c:1646  */
-    { driver.mathAdd(); }
-#line 1482 "grammar.tab.c" /* yacc.c:1646  */
+        case 2:
+#line 67 "grammar.y" /* yacc.c:1646  */
+    { driver.finalizeTree(); }
+#line 1483 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 6:
+#line 77 "grammar.y" /* yacc.c:1646  */
+    { driver.createDecl((yyvsp[-2].i32val), (yyvsp[-1].str)); }
+#line 1489 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 7:
+#line 78 "grammar.y" /* yacc.c:1646  */
+    { driver.createDecl((yyvsp[-4].i32val), (yyvsp[-3].str)); }
+#line 1495 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 61:
+#line 189 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.bex((yyvsp[-2].plane), (yyvsp[0].plane), N_BEX_ORR);	}
+#line 1501 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 62:
+#line 193 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = (yyvsp[0].plane);								}
+#line 1507 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 63:
+#line 194 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.bex((yyvsp[-2].plane), (yyvsp[0].plane), N_BEX_AND);	}
+#line 1513 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 64:
+#line 198 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = (yyvsp[0].plane);								}
+#line 1519 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 65:
+#line 199 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.bex((yyvsp[-2].plane), (yyvsp[0].plane), N_BEX_EQU);	}
+#line 1525 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 66:
+#line 200 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.bex((yyvsp[-2].plane), (yyvsp[0].plane), N_BEX_NEQ);	}
+#line 1531 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 67:
+#line 204 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = (yyvsp[0].plane);								}
+#line 1537 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 68:
+#line 205 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.bex((yyvsp[-2].plane), (yyvsp[0].plane), N_BEX_LES);	}
+#line 1543 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 69:
+#line 206 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.bex((yyvsp[-2].plane), (yyvsp[0].plane), N_BEX_GRT);	}
+#line 1549 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 70:
+#line 207 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.bex((yyvsp[-2].plane), (yyvsp[0].plane), N_BEX_LEQ);	}
+#line 1555 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 71:
+#line 208 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.bex((yyvsp[-2].plane), (yyvsp[0].plane), N_BEX_GEQ);	}
+#line 1561 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 73:
+#line 213 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.mathAdd((yyvsp[-2].plane), (yyvsp[0].plane));		}
+#line 1567 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 74:
-#line 198 "grammar.y" /* yacc.c:1646  */
-    { driver.mathSub(); }
-#line 1488 "grammar.tab.c" /* yacc.c:1646  */
+#line 214 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.mathSub((yyvsp[-2].plane), (yyvsp[0].plane));		}
+#line 1573 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 76:
-#line 203 "grammar.y" /* yacc.c:1646  */
-    { driver.mathMul();	}
-#line 1494 "grammar.tab.c" /* yacc.c:1646  */
+#line 219 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.mathMul((yyvsp[-2].plane), (yyvsp[0].plane));			}
+#line 1579 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 77:
-#line 204 "grammar.y" /* yacc.c:1646  */
-    { driver.mathDiv();	}
-#line 1500 "grammar.tab.c" /* yacc.c:1646  */
+#line 220 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.mathDiv((yyvsp[-2].plane), (yyvsp[0].plane));			}
+#line 1585 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 78:
-#line 205 "grammar.y" /* yacc.c:1646  */
-    { driver.mathMod();	}
-#line 1506 "grammar.tab.c" /* yacc.c:1646  */
+#line 221 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.mathMod((yyvsp[-2].plane), (yyvsp[0].plane));			}
+#line 1591 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 79:
+#line 225 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = (yyvsp[0].plane);								}
+#line 1597 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 80:
-#line 210 "grammar.y" /* yacc.c:1646  */
-    { driver.mathPow();	}
-#line 1512 "grammar.tab.c" /* yacc.c:1646  */
+#line 226 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.mathPow((yyvsp[-2].plane), (yyvsp[0].plane));			}
+#line 1603 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 81:
+#line 230 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = (yyvsp[0].plane);								}
+#line 1609 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 82:
-#line 215 "grammar.y" /* yacc.c:1646  */
-    { driver.mathLen(); }
-#line 1518 "grammar.tab.c" /* yacc.c:1646  */
+#line 231 "grammar.y" /* yacc.c:1646  */
+    { driver.mathLen();						}
+#line 1615 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 83:
+#line 232 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.incDecOpt((yyvsp[0].plane), N_PRE_INC); }
+#line 1621 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 84:
+#line 233 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.incDecOpt((yyvsp[0].plane), N_PRE_DEC);	}
+#line 1627 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 85:
+#line 234 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.incDecOpt((yyvsp[0].plane), (yyvsp[-1].i32val));		}
+#line 1633 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 86:
+#line 238 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = N_UNI_DEP;						}
+#line 1639 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 87:
+#line 239 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = N_UNI_NEG;						}
+#line 1645 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 88:
+#line 240 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = N_UNI_POS;						}
+#line 1651 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 89:
+#line 241 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = N_UNI_LNG;						}
+#line 1657 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 90:
+#line 245 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = NULL; /* TODO */					}
+#line 1663 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 91:
-#line 230 "grammar.y" /* yacc.c:1646  */
-    { driver.identifier((yyvsp[0].str)); }
-#line 1524 "grammar.tab.c" /* yacc.c:1646  */
+#line 246 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.index2((yyvsp[0].str));				}
+#line 1669 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 92:
+#line 247 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.index2((yyvsp[-1].str)); /* TODO */	}
+#line 1675 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 93:
+#line 248 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = (yyvsp[0].plane);								}
+#line 1681 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 94:
+#line 249 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.incDecOpt((yyvsp[-1].plane), N_PST_INC);	}
+#line 1687 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 95:
+#line 250 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.incDecOpt((yyvsp[-1].plane), N_PST_DEC);	}
+#line 1693 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 96:
+#line 254 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.index1((yyvsp[0].plane)); }
+#line 1699 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 97:
+#line 255 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.index2((yyvsp[0].str)); }
+#line 1705 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 98:
+#line 256 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = NULL; noImplement("Array indexing");	}
+#line 1711 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 99:
+#line 257 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = NULL; noImplement("Array indexing");	}
+#line 1717 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 100:
-#line 245 "grammar.y" /* yacc.c:1646  */
-    { driver.i32((yyvsp[0].i32val));	}
-#line 1530 "grammar.tab.c" /* yacc.c:1646  */
+#line 261 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.i32((yyvsp[0].i32val));	}
+#line 1723 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 101:
-#line 246 "grammar.y" /* yacc.c:1646  */
-    { driver.i64((yyvsp[0].i64val));	}
-#line 1536 "grammar.tab.c" /* yacc.c:1646  */
+#line 262 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.i64((yyvsp[0].i64val));	}
+#line 1729 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 102:
-#line 247 "grammar.y" /* yacc.c:1646  */
-    { driver.f32((yyvsp[0].f32val));	}
-#line 1542 "grammar.tab.c" /* yacc.c:1646  */
+#line 263 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.f32((yyvsp[0].f32val));	}
+#line 1735 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 103:
-#line 248 "grammar.y" /* yacc.c:1646  */
-    { driver.f64((yyvsp[0].f64val));	}
-#line 1548 "grammar.tab.c" /* yacc.c:1646  */
+#line 264 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.f64((yyvsp[0].f64val));	}
+#line 1741 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 104:
+#line 265 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = driver.b((yyvsp[0].bval));	}
+#line 1747 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 105:
+#line 266 "grammar.y" /* yacc.c:1646  */
+    { (yyval.plane) = NULL;/*$$ = driver.str($1);*/  }
+#line 1753 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 106:
+#line 270 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = DT_STR;	}
+#line 1759 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 107:
+#line 271 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = DT_LIST;	}
+#line 1765 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 108:
+#line 272 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = DT_SET;	}
+#line 1771 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 109:
+#line 273 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = DT_I8;	}
+#line 1777 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 110:
+#line 274 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = DT_I16;	}
+#line 1783 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 111:
+#line 275 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = DT_I32;	}
+#line 1789 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 112:
+#line 276 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = DT_I64;	}
+#line 1795 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 113:
+#line 277 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = DT_UI8;	}
+#line 1801 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 114:
+#line 278 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = DT_UI16;	}
+#line 1807 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 115:
+#line 279 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = DT_UI32;	}
+#line 1813 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 116:
+#line 280 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = DT_UI64;	}
+#line 1819 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 117:
+#line 281 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = DT_F32;	}
+#line 1825 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 118:
+#line 282 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = DT_F64;	}
+#line 1831 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 119:
+#line 283 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = DT_BOOL;	}
+#line 1837 "grammar.tab.cpp" /* yacc.c:1646  */
+    break;
+
+  case 120:
+#line 284 "grammar.y" /* yacc.c:1646  */
+    { (yyval.i32val) = DT_VAR;	}
+#line 1843 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
 
-#line 1552 "grammar.tab.c" /* yacc.c:1646  */
+#line 1847 "grammar.tab.cpp" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1776,7 +2071,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 271 "grammar.y" /* yacc.c:1906  */
+#line 287 "grammar.y" /* yacc.c:1906  */
 
 /*
 int main() {

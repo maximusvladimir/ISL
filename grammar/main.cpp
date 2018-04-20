@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "tree.h"
 
-extern void yyparse();
+extern void yyparse(Driver d);
 extern FILE* yyin;
 extern FILE* yyout;
 extern int yylineno;
@@ -10,7 +11,7 @@ extern int yylineno;
 FILE* fPtr;
 int usingFile;
 
-void yyerror(const char* s)
+void yyerror(Driver d, char const* s)
 {
 	fprintf(stderr, "Parse error: %s. Line #%d\n", s, yylineno);
 	if (usingFile) {
@@ -35,6 +36,7 @@ void yyerror(const char* s)
 
 int main(int argc, const char* argv[])
 {
+	Driver d;
 	if (argc == 1) {
 		usingFile = 0;
 		int ntoken, vtoken;
@@ -42,7 +44,7 @@ int main(int argc, const char* argv[])
 		yyin = stdin;
 		while (!feof(yyin))
 		{
-			yyparse();
+			yyparse(d);
 		}
 	} else {
 		usingFile = 1;
@@ -54,7 +56,7 @@ int main(int argc, const char* argv[])
 			yyout = stdout;
 			int ntoken;
 			while (!feof(yyin)) {
-				yyparse();
+				yyparse(d);
 			}
 		}
 		printf("Finished parsing input file.\n");

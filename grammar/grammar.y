@@ -7,8 +7,10 @@ extern int yylex();
 extern int yyparse();
 extern FILE* yyin;
 
-extern void yyerror(const char* s);
+extern void yyerror(Driver d, char const* s);
 %}
+
+%parse-param { Driver driver }
 
 %union {
 	int i32val;
@@ -16,6 +18,8 @@ extern void yyerror(const char* s);
 	float f32val;
 	double f64val;
 	int bval;
+	char* str;
+	Plane* plane;
 }
 
 %token PRIM_TYPE_STRING PRIM_TYPE_LIST PRIM_TYPE_SET PRIM_TYPE_I8 PRIM_TYPE_I16 
@@ -35,19 +39,32 @@ extern void yyerror(const char* s);
 %token KEY_FOR_LOOP KEY_IF KEY_ELSE KEY_RETURN KEY_BREAK KEY_WHILE KEY_FUNC
 
 // Others
-%token IDENTIFIER
-%token INT_NUMBER
-%type <tree> constant
-%type <tree> pow_exp mult_math_exp add_math_exp
+%token <str>	IDENTIFIER
+%token <i32val> INT_NUMBER
 %token <i64val> I64_NUMBER
 %token <f32val> F32_NUMBER
 %token <f64val> F64_NUMBER
-%token <bval> BOOL_NUMBER
+%token <bval>	BOOL_NUMBER
+
+%type <plane>	constant
+%type <plane>	index
+%type <plane>	postfix_exp
+%type <i32val>	unary_operator
+%type <plane>	unary_exp
+%type <plane>	pow_exp
+%type <i32val>	var_type
+%type <plane>	mult_math_exp
+%type <plane>	add_math_exp
+%type <plane>	bool_or_math_exp
+%type <plane>	logiceq_or_math_exp
+%type <plane>	logicand_or_math_exp
+%type <plane>	logicor_or_math_exp
+
 %start program
 %%
 
 program
-	: rootblock_list
+	: rootblock_list { driver.finalizeTree(); }
 	;
 
 rootblock_list
@@ -57,8 +74,8 @@ rootblock_list
 	;
 
 statement
-	: var_type IDENTIFIER '\n' // PRIM_TYPE_VAR should NOT be allowed here. YACC isn't good at supporting this though.
-	| var_type IDENTIFIER OPERATOR_ASSIGNMENT gen_exp '\n'
+	: var_type IDENTIFIER '\n' 								{ driver.createDecl($1, $2); }
+	| var_type IDENTIFIER OPERATOR_ASSIGNMENT gen_exp '\n'	{ driver.createDecl($1, $2); }
 	| func_call '\n'
 	| assign_update_statement '\n'
 	| KEY_RETURN gen_exp '\n'
@@ -141,130 +158,130 @@ func_arg_list_tail
 	;
 
 gen_exp
-	: '(' gen_exp ')'
-	| logicor_or_math_exp
+	: '(' gen_exp ')'			{ $$ = $2;							}
+	| logicor_or_math_exp		{ $$ = 	
 	| list_def
 	| set_def
 	;
 	
 list_def
-	: '[' gen_exp list_def_tail
-	| '[' ']'
+	: '[' gen_exp list_def_tail	{ $$ = driver.abtSeq($2, $3);		}
+	| '[' ']'					{ $$ = driver.abtSeq(NULL, NULL);	}
 	;
 
 list_def_tail
-	: ',' gen_exp list_def_tail
-	| ']'
+	: ',' gen_exp list_def_tail	{ $$ = driver.abtSeq($2, $3);		}
+	| ']'						{ $$ = NULL;						}
 	;
 
 set_def
-	: '{' gen_exp set_def_tail
-	| '{' '}'
+	: '{' gen_exp set_def_tail	{ $$ = driver.abtSet($2, $3);		}
+	| '{' '}'					{ $$ = driver.abtSet(NULL, NULL);	}
 	;
 
 set_def_tail
-	: ',' gen_exp set_def_tail
-	| '}'
+	: ',' gen_exp set_def_tail	{ $$ = driver.abtSet($2, $3);		}
+	| '}'						{ $$ = NULL;						}
 	;
 
 logicor_or_math_exp
 	: logicand_or_math_exp
-	| logicor_or_math_exp OPERATOR_LOGICAL_OR logicand_or_math_exp
+	| logicor_or_math_exp OPERATOR_LOGICAL_OR logicand_or_math_exp	{ $$ = driver.bex($1, $3, N_BEX_ORR);	}
 	;
 
 logicand_or_math_exp
-	: logiceq_or_math_exp
-	| logicand_or_math_exp OPERATOR_LOGICAL_AND logiceq_or_math_exp
+	: logiceq_or_math_exp											{ $$ = $1;								}
+	| logicand_or_math_exp OPERATOR_LOGICAL_AND logiceq_or_math_exp	{ $$ = driver.bex($1, $3, N_BEX_AND);	}
 	;
 
 logiceq_or_math_exp
-	: bool_or_math_exp
-	| logiceq_or_math_exp '=' bool_or_math_exp
-	| logiceq_or_math_exp OPERATOR_BOOL_NEQ bool_or_math_exp
+	: bool_or_math_exp											{ $$ = $1;								}
+	| logiceq_or_math_exp '=' bool_or_math_exp					{ $$ = driver.bex($1, $3, N_BEX_EQU);	}
+	| logiceq_or_math_exp OPERATOR_BOOL_NEQ bool_or_math_exp	{ $$ = driver.bex($1, $3, N_BEX_NEQ);	}
 	;
 
 bool_or_math_exp
-	: add_math_exp
-	| bool_or_math_exp '<' add_math_exp
-	| bool_or_math_exp '>' add_math_exp
-	| bool_or_math_exp OPERATOR_BOOL_LESS_OR_EQ add_math_exp
-	| bool_or_math_exp OPERATOR_BOOL_GREAT_OR_EQ add_math_exp
+	: add_math_exp												{ $$ = $1;								}
+	| bool_or_math_exp '<' add_math_exp							{ $$ = driver.bex($1, $3, N_BEX_LES);	}
+	| bool_or_math_exp '>' add_math_exp							{ $$ = driver.bex($1, $3, N_BEX_GRT);	}
+	| bool_or_math_exp OPERATOR_BOOL_LESS_OR_EQ add_math_exp	{ $$ = driver.bex($1, $3, N_BEX_LEQ);	}
+	| bool_or_math_exp OPERATOR_BOOL_GREAT_OR_EQ add_math_exp	{ $$ = driver.bex($1, $3, N_BEX_GEQ);	}
 	;
 
 add_math_exp
 	: mult_math_exp
-	| add_math_exp '+' mult_math_exp { $$ = addNode($1, $3); }
-	| add_math_exp '-' mult_math_exp { $$ = subNode($1, $3); }
+	| add_math_exp '+' mult_math_exp { $$ = driver.mathAdd($1, $3);		}
+	| add_math_exp '-' mult_math_exp { $$ = driver.mathSub($1, $3);		}
 	;
 
 mult_math_exp
 	: pow_exp
-	| mult_math_exp '*' pow_exp	{ $$ = multNode($1, $3);	}
-	| mult_math_exp '/' pow_exp	{ $$ = divNode($1, $3);		}
-	| mult_math_exp '%' pow_exp	{ $$ = modNode($1, $3);		}
+	| mult_math_exp '*' pow_exp	{ $$ = driver.mathMul($1, $3);			}
+	| mult_math_exp '/' pow_exp	{ $$ = driver.mathDiv($1, $3);			}
+	| mult_math_exp '%' pow_exp	{ $$ = driver.mathMod($1, $3);			}
 	;
 	
 pow_exp
-	: unary_exp
-	| pow_exp '^' unary_exp	{ $$ = powNode($1, $3);	}
+	: unary_exp					{ $$ = $1;								}
+	| pow_exp '^' unary_exp		{ $$ = driver.mathPow($1, $3);			}
 	;
 
 unary_exp
-	: postfix_exp
-	| '|' unary_exp '|'			{ $$ = lenNode($1); }
-	| OPERATOR_INC unary_exp
-	| OPERATOR_DEC unary_exp
-	| unary_operator unary_exp
+	: postfix_exp				{ $$ = $1;								}
+	| '|' unary_exp '|'			{ driver.mathLen();						}
+	| OPERATOR_INC unary_exp	{ $$ = driver.incDecOpt($2, N_PRE_INC); }
+	| OPERATOR_DEC unary_exp	{ $$ = driver.incDecOpt($2, N_PRE_DEC);	}
+	| unary_operator unary_exp	{ $$ = driver.incDecOpt($2, $1);		}
 	;
 
 unary_operator
-	: '~'
-	| '-'
-	| '+'
-	| '!'
+	: '~'						{ $$ = N_UNI_DEP;						}
+	| '-'						{ $$ = N_UNI_NEG;						}
+	| '+'						{ $$ = N_UNI_POS;						} 
+	| '!'						{ $$ = N_UNI_LNG;						}
 	;
 
 postfix_exp
-	: func_call
-	| IDENTIFIER
-	| IDENTIFIER index
-	| constant
-	| postfix_exp OPERATOR_INC
-	| postfix_exp OPERATOR_DEC
+	: func_call					{ $$ = NULL; /* TODO */					}
+	| IDENTIFIER				{ $$ = driver.index2($1);				}
+	| IDENTIFIER index			{ $$ = driver.index2($1); /* TODO */	}
+	| constant					{ $$ = $1;								}
+	| postfix_exp OPERATOR_INC	{ $$ = driver.incDecOpt($1, N_PST_INC);	}
+	| postfix_exp OPERATOR_DEC	{ $$ = driver.incDecOpt($1, N_PST_DEC);	}
 	;
 	
 index
-	: '@' constant
-	| '@' IDENTIFIER
-	| '@' '(' gen_exp ')'
-	| '@' '(' gen_exp ',' gen_exp ')'
+	: '@' constant						{ $$ = driver.index1($2); }
+	| '@' IDENTIFIER					{ $$ = driver.index2($2); }
+	| '@' '(' gen_exp ')'				{ $$ = NULL; noImplement("Array indexing");	} // skip for now.
+	| '@' '(' gen_exp ',' gen_exp ')'	{ $$ = NULL; noImplement("Array indexing");	}
 	;
 
 constant
-	: INT_NUMBER	{ $$ = singleValue(yylval.i32value); }
-	| I64_NUMBER
-	| F32_NUMBER
-	| F64_NUMBER
-	| BOOL_NUMBER
-	| SYM_STR_CHAR // move to add only
+	: INT_NUMBER	{ $$ = driver.i32($1);	}
+	| I64_NUMBER	{ $$ = driver.i64($1);	}
+	| F32_NUMBER	{ $$ = driver.f32($1);	}
+	| F64_NUMBER	{ $$ = driver.f64($1);	}
+	| BOOL_NUMBER	{ $$ = driver.b($1);	}
+	| SYM_STR_CHAR 	{ $$ = NULL;/*$$ = driver.str($1);*/  }// move to add only
 	;
 
 var_type
-	: PRIM_TYPE_STRING
-	| PRIM_TYPE_LIST
-	| PRIM_TYPE_SET
-	| PRIM_TYPE_I8
-	| PRIM_TYPE_I16
-	| PRIM_TYPE_I32
-	| PRIM_TYPE_I64
-	| PRIM_TYPE_UI8
-	| PRIM_TYPE_UI16
-	| PRIM_TYPE_UI32
-	| PRIM_TYPE_UI64
-	| PRIM_TYPE_F32
-	| PRIM_TYPE_F64
-	| PRIM_TYPE_BOOL
-	| PRIM_TYPE_VAR
+	: PRIM_TYPE_STRING	{ $$ = DT_STR;	}
+	| PRIM_TYPE_LIST	{ $$ = DT_LIST;	}
+	| PRIM_TYPE_SET		{ $$ = DT_SET;	}
+	| PRIM_TYPE_I8		{ $$ = DT_I8;	}
+	| PRIM_TYPE_I16		{ $$ = DT_I16;	}
+	| PRIM_TYPE_I32		{ $$ = DT_I32;	}
+	| PRIM_TYPE_I64		{ $$ = DT_I64;	}
+	| PRIM_TYPE_UI8		{ $$ = DT_UI8;	}
+	| PRIM_TYPE_UI16	{ $$ = DT_UI16;	}
+	| PRIM_TYPE_UI32	{ $$ = DT_UI32;	}
+	| PRIM_TYPE_UI64	{ $$ = DT_UI64;	}
+	| PRIM_TYPE_F32		{ $$ = DT_F32;	}
+	| PRIM_TYPE_F64		{ $$ = DT_F64;	}
+	| PRIM_TYPE_BOOL	{ $$ = DT_BOOL;	}
+	| PRIM_TYPE_VAR		{ $$ = DT_VAR;	}
 	;
 
 %%

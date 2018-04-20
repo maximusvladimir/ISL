@@ -1,13 +1,13 @@
 all: isl
 
-grammar.tab.c grammar.tab.h: grammar.y
-	bison -d grammar.y
+grammar.tab.cpp grammar.tab.hpp: grammar.y
+	bison -d grammar.y -o grammar.tab.cpp
 
-lex.yy.c: lexanalysis.l grammar.tab.h
+lex.yy.c: lexanalysis.l grammar.tab.hpp
 	flex lexanalysis.l
 
-isl: main.c lex.yy.c grammar.tab.c tree.c grammar.tab.h
-	gcc -g -o isl grammar.tab.c lex.yy.c main.c tree.c
+isl: main.cpp lex.yy.c grammar.tab.c tree.cpp grammar.tab.hpp
+	g++ -g -o isl tree.cpp lex.yy.c grammar.tab.cpp main.cpp
 
 clean:
-	rm isl lex.yy.c grammar.tab.c grammar.tab.h
+	rm isl lex.yy.c grammar.tab.cpp grammar.tab.hpp

@@ -1,7 +1,7 @@
 %{
 #include "tree.h"
 #include <stdio.h>
-#include "grammar.tab.h"
+#include "grammar.tab.hpp"
 #include <inttypes.h>
 
 //#define YY_DECL int yylex()
@@ -25,8 +25,8 @@ void storef64(char v[]);
 "/*"										{ comment(); }
 (\t)*\/\/.*									{}
 
-L?\"(\\.|[^\\"])*\"							return SYM_STR_CHAR;
-L?\'(\\.|[^\\'])*\'							return SYM_STR_CHAR;
+L?\"(\\.|[^\\"])*\"							{ yylval.str = yytext; return SYM_STR_CHAR; }
+L?\'(\\.|[^\\'])*\'							{ yylval.str = yytext; return SYM_STR_CHAR; }
 
 [ \v\f]										{}
 [\r]*										{}
@@ -97,11 +97,11 @@ L?\'(\\.|[^\\'])*\'							return SYM_STR_CHAR;
 "func"										return KEY_FUNC;
 "true"										{ /*storebool(1);*/ return BOOL_NUMBER; }
 "false"										{ /*storebool(0); */return BOOL_NUMBER; /*[ ]*										{}*/}
-[0-9]+										{ return INT_NUMBER; }
+[0-9]+										{ yylval.i32val = atoi(yytext); return INT_NUMBER; }
 [0-9]+l										{ return I64_NUMBER; }
 ([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+) 			{ /*storef32(yytext); */return F64_NUMBER; }
 ([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+)f			{ return F32_NUMBER; }
-[a-zA-Z_][a-zA-Z_0-9]*						return IDENTIFIER;
+[a-zA-Z_][a-zA-Z_0-9]*						{ yylval.str = yytext; return IDENTIFIER; }
 .											{ printf("Undefined character detected in lexer.\n"); }
 
 %%
@@ -110,6 +110,9 @@ int yywrap()
 {
 	return 1;
 }
+
+// NOTE: if using C++, then it should be yyinput().
+//       if using C, then it should be input().
 
 void comment()
 {
@@ -120,10 +123,10 @@ void comment()
 	while (cont)
 	{
 		cont = 0;
-		while ((c = input()) != '*' && c != 0);
+		while ((c = yyinput()) != '*' && c != 0);
 			//putchar(c);
 
-		if ((c1 = input()) != '/' && c != 0)
+		if ((c1 = yyinput()) != '/' && c != 0)
 		{
 			//unput(c1);
 			cont = 1;
@@ -136,7 +139,7 @@ void comment()
 
 void comment2() {
 	while (1) {
-		if (input() == '\n')
+		if (yyinput() == '\n')
 			break;
 	}
 }
