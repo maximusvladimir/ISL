@@ -9,6 +9,8 @@
 void comment();
 void comment2();
 
+char* hardCopy(char* str); // MEM LEAK!
+
 void storebool(int b);
 void storei32(char v[]);
 void storei64(char v[]);
@@ -25,8 +27,8 @@ void storef64(char v[]);
 "/*"										{ comment(); }
 (\t)*\/\/.*									{}
 
-L?\"(\\.|[^\\"])*\"							{ yylval.str = yytext; return SYM_STR_CHAR; }
-L?\'(\\.|[^\\'])*\'							{ yylval.str = yytext; return SYM_STR_CHAR; }
+L?\"(\\.|[^\\"])*\"							{ yylval.str = hardCopy(yytext); return SYM_STR_CHAR; }
+L?\'(\\.|[^\\'])*\'							{ yylval.str = hardCopy(yytext); return SYM_STR_CHAR; }
 
 [ \v\f]										{}
 [\r]*										{}
@@ -101,10 +103,16 @@ L?\'(\\.|[^\\'])*\'							{ yylval.str = yytext; return SYM_STR_CHAR; }
 [0-9]+l										{ return I64_NUMBER; }
 ([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+) 			{ /*storef32(yytext); */return F64_NUMBER; }
 ([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+)f			{ return F32_NUMBER; }
-[a-zA-Z_][a-zA-Z_0-9]*						{ yylval.str = yytext; return IDENTIFIER; }
+[a-zA-Z_][a-zA-Z_0-9]*						{ yylval.str = hardCopy(yytext); return IDENTIFIER; }
 .											{ printf("Undefined character detected in lexer.\n"); }
 
 %%
+
+char* hardCopy(char* str) {
+	char* nstr = (char*)malloc(sizeof(char) * (strlen(str) + 1)); // make sure to include \0!
+	memcpy(nstr, str, strlen(str) + 1);
+	return nstr;
+}
 
 int yywrap()
 {

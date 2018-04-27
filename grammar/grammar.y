@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "tree.h"
+#include "asmgen.h"
 
 extern int yylex();
 extern int yyparse();
@@ -20,6 +21,7 @@ extern void yyerror(Driver d, char const* s);
 	int bval;
 	char* str;
 	Plane* plane;
+	LL* list;
 }
 
 %token PRIM_TYPE_STRING PRIM_TYPE_LIST PRIM_TYPE_SET PRIM_TYPE_I8 PRIM_TYPE_I16 
@@ -72,18 +74,25 @@ extern void yyerror(Driver d, char const* s);
 %type <plane>	func_vars_tail
 %type <plane>	func_vars
 %type <plane>	statement
+%type <plane>	assign_update_statement
+%type <list>	maybe_sub_block
+%type <list>	sub_block
+%type <plane>	block
+%type <list>	else_chain
+%type <plane>	func_head
+%type <list>	rootblock_list
 
 %start program
 %%
 
 program
-	: rootblock_list { driver.finalizeTree(); }
+	: rootblock_list											{ generateAsm($1);						}
 	;
 
 rootblock_list
-	: statement rootblock_list									{ driver.dumpStatement($1);	}
-	| statement													{ driver.dumpStatement($1);	}
-	| '\n'
+	: statement rootblock_list									{ $$ = driver.statementChain($1, $2);	}
+	| statement													{ $$ = driver.statementChain($1, NULL);	}
+	| '\n'														{ $$ = NULL;/*driver.ignore();*/		}
 	;
 
 statement
@@ -91,48 +100,49 @@ statement
 	| var_type IDENTIFIER OPERATOR_ASSIGNMENT gen_exp '\n'		{ $$ = driver.createDecl($1, $2, A_REG, $4);	}
 	| var_type IDENTIFIER OPERATOR_DEEP_ASSIGNMENT gen_exp '\n'	{ $$ = driver.createDecl($1, $2, A_DEP, $4);	}
 	| func_call '\n'											{ $$ = $1;										}
-	| assign_update_statement '\n'								{ $$ = NULL; /* TODO */							}
+	| assign_update_statement '\n'								{ $$ = $1;										}
 	| KEY_RETURN gen_exp '\n'									{ $$ = NULL; /* TODO */							}
 	| KEY_RETURN '\n'											{ $$ = NULL; /* TODO */							}
-	| block														{ $$ = NULL; /* TODO */							}
+	| block														{ $$ = $1;										}
 	;
 
 assign_update_statement
-	: IDENTIFIER OPERATOR_ASSIGNMENT gen_exp
-	| IDENTIFIER OPERATOR_MULT_ASSIGN gen_exp
-	| IDENTIFIER OPERATOR_DIV_ASSIGN gen_exp
-	| IDENTIFIER OPERATOR_ADD_ASSIGN gen_exp
-	| IDENTIFIER OPERATOR_SUB_ASSIGN gen_exp
-	| IDENTIFIER OPERATOR_MOD_ASSIGN gen_exp
+	: IDENTIFIER OPERATOR_ASSIGNMENT gen_exp					{ $$ = driver.createAssign($1, A_REG, $3);		}
+	| IDENTIFIER OPERATOR_MULT_ASSIGN gen_exp					{ $$ = driver.createAssign($1, A_MUL, $3);		}
+	| IDENTIFIER OPERATOR_DIV_ASSIGN gen_exp					{ $$ = driver.createAssign($1, A_DIV, $3);		}
+	| IDENTIFIER OPERATOR_ADD_ASSIGN gen_exp					{ $$ = driver.createAssign($1, A_ADD, $3);		}
+	| IDENTIFIER OPERATOR_SUB_ASSIGN gen_exp					{ $$ = driver.createAssign($1, A_SUB, $3);		}
+	| IDENTIFIER OPERATOR_MOD_ASSIGN gen_exp					{ $$ = driver.createAssign($1, A_MOD, $3);		}
+	| IDENTIFIER OPERATOR_DEEP_ASSIGNMENT gen_exp				{ $$ = driver.createAssign($1, A_DEP, $3);		}
 	;
 
 block
-	: KEY_FOR_LOOP IDENTIFIER from_to '\n' sub_block
-	| KEY_IF gen_exp '\n' sub_block
-	| KEY_IF gen_exp '\n' sub_block else_chain
-	| var_type func_head
-	| func_head
+	: KEY_FOR_LOOP IDENTIFIER from_to '\n' sub_block			{ $$ = driver.forLoop($2, $3, $5);				}
+	| KEY_IF gen_exp '\n' sub_block								{ $$ = driver.ifBlock($2, $4, NULL);			}
+	| KEY_IF gen_exp '\n' sub_block else_chain					{ $$ = driver.ifBlock($2, $4, $5);				}
+	| var_type func_head										{ $$ = driver.funcHead($1, $2);					}
+	| func_head													{ $$ = driver.funcHead(DT_NONE, $1);			}
 	;
 
 else_chain
-	: KEY_ELSE '\n' sub_block
-	| KEY_ELSE KEY_IF gen_exp '\n' sub_block
-	| KEY_ELSE KEY_IF gen_exp '\n' sub_block else_chain
+	: KEY_ELSE '\n' sub_block									{ $$ = driver.elBlock(NULL, $3, NULL);			}
+	| KEY_ELSE KEY_IF gen_exp '\n' sub_block					{ $$ = driver.elBlock($3, $5, NULL);			}
+	| KEY_ELSE KEY_IF gen_exp '\n' sub_block else_chain			{ $$ = driver.elBlock($3, $5, $6);				}
 	;
 
 func_head
-	: KEY_FUNC IDENTIFIER '(' ')' '\n' sub_block
-	| KEY_FUNC IDENTIFIER '(' func_vars ')' '\n' sub_block
+	: KEY_FUNC IDENTIFIER '(' ')' '\n' sub_block				{ $$ = driver.funcDecl($2, NULL, $6);			}
+	| KEY_FUNC IDENTIFIER '(' func_vars ')' '\n' sub_block		{ $$ = driver.funcDecl($2, $4, $7);				}
 	;
 
 sub_block
-	: maybe_sub_block
-	| statement
+	: maybe_sub_block											{ $$ = $1;							}
+	| statement													{ $$ = driver.addToList($1, NULL);	}
 	;
 
 maybe_sub_block
-	: '\t' statement maybe_sub_block
-	| '\t' statement
+	: '\t' statement maybe_sub_block							{ $$ = driver.addToList($2, $3);	}
+	| '\t' statement											{ $$ = driver.addToList($2, NULL);	}
 	;
 
 func_vars
@@ -277,7 +287,7 @@ constant
 	| F32_NUMBER	{ $$ = driver.f32($1);	}
 	| F64_NUMBER	{ $$ = driver.f64($1);	}
 	| BOOL_NUMBER	{ $$ = driver.b($1);	}
-	| SYM_STR_CHAR 	{ $$ = driver.str($1); printf("STR: %s\n", $1);  }// move to add only
+	| SYM_STR_CHAR 	{ $$ = driver.str($1);  }// move to add only
 	;
 
 var_type

@@ -6,8 +6,8 @@ grammar.tab.cpp grammar.tab.hpp: grammar.y
 lex.yy.c: lexanalysis.l grammar.tab.hpp
 	flex lexanalysis.l
 
-isl: main.cpp lex.yy.c grammar.tab.c tree.cpp grammar.tab.hpp
-	g++ -g -o isl tree.cpp lex.yy.c grammar.tab.cpp main.cpp
+isl: main.cpp asmgen.cpp lex.yy.c grammar.tab.c tree.cpp grammar.tab.hpp asmgen.h tree.h
+	g++ -g -o isl tree.cpp lex.yy.c grammar.tab.cpp asmgen.cpp main.cpp
 
 clean:
 	rm isl lex.yy.c grammar.tab.cpp grammar.tab.hpp

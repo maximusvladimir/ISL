@@ -620,6 +620,8 @@ char *yytext;
 void comment();
 void comment2();
 
+char* hardCopy(char* str); // MEM LEAK!
+
 void storebool(int b);
 void storei32(char v[]);
 void storei64(char v[]);
@@ -628,7 +630,7 @@ void storef64(char v[]);
 
 // use standard io for now:
 //#define YY_STDINIT
-#line 632 "lex.yy.c"
+#line 634 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -846,9 +848,9 @@ YY_DECL
 		}
 
 	{
-#line 24 "lexanalysis.l"
+#line 26 "lexanalysis.l"
 
-#line 852 "lex.yy.c"
+#line 854 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -917,403 +919,403 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 25 "lexanalysis.l"
+#line 27 "lexanalysis.l"
 { comment(); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 26 "lexanalysis.l"
+#line 28 "lexanalysis.l"
 {}
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 28 "lexanalysis.l"
-{ yylval.str = yytext; return SYM_STR_CHAR; }
+#line 30 "lexanalysis.l"
+{ yylval.str = hardCopy(yytext); return SYM_STR_CHAR; }
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 29 "lexanalysis.l"
-{ yylval.str = yytext; return SYM_STR_CHAR; }
+#line 31 "lexanalysis.l"
+{ yylval.str = hardCopy(yytext); return SYM_STR_CHAR; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 31 "lexanalysis.l"
+#line 33 "lexanalysis.l"
 {}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 32 "lexanalysis.l"
+#line 34 "lexanalysis.l"
 {}
 	YY_BREAK
 case 7:
 /* rule 7 can match eol */
 YY_RULE_SETUP
-#line 33 "lexanalysis.l"
+#line 35 "lexanalysis.l"
 return '\n';
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 34 "lexanalysis.l"
+#line 36 "lexanalysis.l"
 return '\t';
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 35 "lexanalysis.l"
+#line 37 "lexanalysis.l"
 return '\t';
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 37 "lexanalysis.l"
+#line 39 "lexanalysis.l"
 return PRIM_TYPE_STRING;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 38 "lexanalysis.l"
+#line 40 "lexanalysis.l"
 return PRIM_TYPE_LIST;
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 39 "lexanalysis.l"
+#line 41 "lexanalysis.l"
 return PRIM_TYPE_SET;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 40 "lexanalysis.l"
+#line 42 "lexanalysis.l"
 return PRIM_TYPE_I8;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 41 "lexanalysis.l"
+#line 43 "lexanalysis.l"
 return PRIM_TYPE_I16;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 42 "lexanalysis.l"
+#line 44 "lexanalysis.l"
 return PRIM_TYPE_I32;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 43 "lexanalysis.l"
+#line 45 "lexanalysis.l"
 return PRIM_TYPE_I64;
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 44 "lexanalysis.l"
+#line 46 "lexanalysis.l"
 return PRIM_TYPE_UI8;
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 45 "lexanalysis.l"
+#line 47 "lexanalysis.l"
 return PRIM_TYPE_UI16;
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 46 "lexanalysis.l"
+#line 48 "lexanalysis.l"
 return PRIM_TYPE_UI32;
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 47 "lexanalysis.l"
+#line 49 "lexanalysis.l"
 return PRIM_TYPE_UI64;
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 48 "lexanalysis.l"
+#line 50 "lexanalysis.l"
 return PRIM_TYPE_F32;
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 49 "lexanalysis.l"
+#line 51 "lexanalysis.l"
 return PRIM_TYPE_F64;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 50 "lexanalysis.l"
+#line 52 "lexanalysis.l"
 return PRIM_TYPE_BOOL;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 51 "lexanalysis.l"
+#line 53 "lexanalysis.l"
 return PRIM_TYPE_VAR;
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 52 "lexanalysis.l"
+#line 54 "lexanalysis.l"
 return OPERATOR_ASSIGNMENT;
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 53 "lexanalysis.l"
+#line 55 "lexanalysis.l"
 return OPERATOR_DEEP_ASSIGNMENT;
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 54 "lexanalysis.l"
+#line 56 "lexanalysis.l"
 return '~';//return OPERATOR_DEEP_COPY;
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 55 "lexanalysis.l"
+#line 57 "lexanalysis.l"
 return OPERATOR_SET_TO;
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 56 "lexanalysis.l"
+#line 58 "lexanalysis.l"
 return OPERATOR_SET_SKIP;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 57 "lexanalysis.l"
+#line 59 "lexanalysis.l"
 return OPERATOR_SET_FROM;
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 58 "lexanalysis.l"
+#line 60 "lexanalysis.l"
 return '<';//OPERATOR_BOOL_LESS;
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 59 "lexanalysis.l"
+#line 61 "lexanalysis.l"
 return OPERATOR_BOOL_LESS_OR_EQ;
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 60 "lexanalysis.l"
+#line 62 "lexanalysis.l"
 return '>';//return OPERATOR_BOOL_GREAT;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 61 "lexanalysis.l"
+#line 63 "lexanalysis.l"
 return OPERATOR_BOOL_GREAT_OR_EQ;
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 62 "lexanalysis.l"
+#line 64 "lexanalysis.l"
 return '=';//OPERATOR_BOOL_EQ;
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 63 "lexanalysis.l"
+#line 65 "lexanalysis.l"
 return OPERATOR_BOOL_NEQ;
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 64 "lexanalysis.l"
+#line 66 "lexanalysis.l"
 return '!';//OPERATOR_BOOL_NEG;
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 65 "lexanalysis.l"
+#line 67 "lexanalysis.l"
 return OPERATOR_LOGICAL_OR;
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 66 "lexanalysis.l"
+#line 68 "lexanalysis.l"
 return OPERATOR_LOGICAL_AND;
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 67 "lexanalysis.l"
+#line 69 "lexanalysis.l"
 return '@';//OPERATOR_INDEX;
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 68 "lexanalysis.l"
+#line 70 "lexanalysis.l"
 return '*';//return OPERATOR_MULT;
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 69 "lexanalysis.l"
+#line 71 "lexanalysis.l"
 return OPERATOR_MULT_ASSIGN;
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 70 "lexanalysis.l"
+#line 72 "lexanalysis.l"
 return '/';//return OPERATOR_DIV;
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 71 "lexanalysis.l"
+#line 73 "lexanalysis.l"
 return OPERATOR_DIV_ASSIGN;
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 72 "lexanalysis.l"
+#line 74 "lexanalysis.l"
 return '+';//OPERATOR_ADD;
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 73 "lexanalysis.l"
+#line 75 "lexanalysis.l"
 return OPERATOR_ADD_ASSIGN;
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 74 "lexanalysis.l"
+#line 76 "lexanalysis.l"
 return OPERATOR_INC;
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 75 "lexanalysis.l"
+#line 77 "lexanalysis.l"
 return '-';//OPERATOR_SUB;
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 76 "lexanalysis.l"
+#line 78 "lexanalysis.l"
 return OPERATOR_SUB_ASSIGN;
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 77 "lexanalysis.l"
+#line 79 "lexanalysis.l"
 return OPERATOR_DEC;
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 78 "lexanalysis.l"
+#line 80 "lexanalysis.l"
 return '^';//OPERATOR_POW;
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 79 "lexanalysis.l"
+#line 81 "lexanalysis.l"
 return '|';//OPERATOR_LENGTH;
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 80 "lexanalysis.l"
+#line 82 "lexanalysis.l"
 return '%';//OPERATOR_MOD;
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 81 "lexanalysis.l"
+#line 83 "lexanalysis.l"
 return OPERATOR_MOD_ASSIGN;
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 82 "lexanalysis.l"
+#line 84 "lexanalysis.l"
 return '"';//SYM_DOUBLE_QUOTE;
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 83 "lexanalysis.l"
+#line 85 "lexanalysis.l"
 return '\'';//SYM_SINGLE_QUOTE;
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 84 "lexanalysis.l"
+#line 86 "lexanalysis.l"
 return '[';//SYM_LIST_START;
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 85 "lexanalysis.l"
+#line 87 "lexanalysis.l"
 return ']';//SYM_LIST_END;
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 86 "lexanalysis.l"
+#line 88 "lexanalysis.l"
 return '{';//SYM_SET_START;
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 87 "lexanalysis.l"
+#line 89 "lexanalysis.l"
 return '}';//SYM_SET_END;
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 88 "lexanalysis.l"
+#line 90 "lexanalysis.l"
 return ',';//SYM_COMMA;
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 89 "lexanalysis.l"
+#line 91 "lexanalysis.l"
 return '(';//SYM_PAR_OPEN;
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 90 "lexanalysis.l"
+#line 92 "lexanalysis.l"
 return ')';//SYM_PAR_CLOSE;
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 91 "lexanalysis.l"
+#line 93 "lexanalysis.l"
 return KEY_FOR_LOOP;
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 92 "lexanalysis.l"
+#line 94 "lexanalysis.l"
 return KEY_IF;
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 93 "lexanalysis.l"
+#line 95 "lexanalysis.l"
 return KEY_ELSE;
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 94 "lexanalysis.l"
+#line 96 "lexanalysis.l"
 return KEY_RETURN;
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 95 "lexanalysis.l"
+#line 97 "lexanalysis.l"
 return KEY_BREAK;
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 96 "lexanalysis.l"
+#line 98 "lexanalysis.l"
 return KEY_WHILE;
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 97 "lexanalysis.l"
+#line 99 "lexanalysis.l"
 return KEY_FUNC;
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 98 "lexanalysis.l"
+#line 100 "lexanalysis.l"
 { /*storebool(1);*/ return BOOL_NUMBER; }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 99 "lexanalysis.l"
+#line 101 "lexanalysis.l"
 { /*storebool(0); */return BOOL_NUMBER; /*[ ]*										{}*/}
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 100 "lexanalysis.l"
+#line 102 "lexanalysis.l"
 { yylval.i32val = atoi(yytext); return INT_NUMBER; }
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 101 "lexanalysis.l"
+#line 103 "lexanalysis.l"
 { return I64_NUMBER; }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 102 "lexanalysis.l"
+#line 104 "lexanalysis.l"
 { /*storef32(yytext); */return F64_NUMBER; }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 103 "lexanalysis.l"
+#line 105 "lexanalysis.l"
 { return F32_NUMBER; }
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 104 "lexanalysis.l"
-{ yylval.str = yytext; return IDENTIFIER; }
+#line 106 "lexanalysis.l"
+{ yylval.str = hardCopy(yytext); return IDENTIFIER; }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 105 "lexanalysis.l"
+#line 107 "lexanalysis.l"
 { printf("Undefined character detected in lexer.\n"); }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 107 "lexanalysis.l"
+#line 109 "lexanalysis.l"
 ECHO;
 	YY_BREAK
-#line 1317 "lex.yy.c"
+#line 1319 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2326,9 +2328,15 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 107 "lexanalysis.l"
+#line 109 "lexanalysis.l"
 
 
+
+char* hardCopy(char* str) {
+	char* nstr = (char*)malloc(sizeof(char) * (strlen(str) + 1)); // make sure to include \0!
+	memcpy(nstr, str, strlen(str) + 1);
+	return nstr;
+}
 
 int yywrap()
 {

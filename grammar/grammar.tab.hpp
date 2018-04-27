@@ -99,7 +99,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 15 "grammar.y" /* yacc.c:1909  */
+#line 16 "grammar.y" /* yacc.c:1909  */
 
 	int i32val;
 	long i64val;
@@ -108,8 +108,9 @@ union YYSTYPE
 	int bval;
 	char* str;
 	Plane* plane;
+	LL* list;
 
-#line 113 "grammar.tab.hpp" /* yacc.c:1909  */
+#line 114 "grammar.tab.hpp" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

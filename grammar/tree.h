@@ -38,6 +38,14 @@
 #define N_DEC_DEC   34      // Filler decl.
 #define N_ARR_IDX   35      // Array indexing operation.
 #define N_IDX_MAR   36      // Array indexing multiargument. The left is the first argument. The right may or may not be null.
+#define B_REG_CON   37      // Block that is a regular continuation.
+#define N_FOR_STR   38      // For loop. Left: loop var identifier. Right: from to construct. Sub: sub block.
+#define N_IFB_STR   39      // If statement. Left: boolean expression to eval. Right: plane containing else chain. Sub: sub block.
+#define N_ELB_STR   40      // Else chain. Strictly has sub set with the actual chain, or NULL.
+#define B_ELB_CON   41      // Middle or end of else chain.
+#define N_FUN_HED   42      // Just the function head. Contains the type and in the left and the right contains the body and rest of head.
+#define N_FUN_BDY   43      // The function identifier in the left, the function args in the right, and sub contains the body list.
+#define N_IGN_STR   44      // Please ignore. This might be in a statement chain (LL*).
 
 #define A_REG       100
 #define A_ADD       101
@@ -80,12 +88,25 @@ typedef union PType {
     bool b;
 } PType;
 
+struct LL;
+
 typedef struct Plane {
     Plane* left;
     Plane* right;
     int type;
     PType val;
+    struct LL* sub;
+    int currentBlock;
 } Plane;
+
+typedef struct LL {
+    struct LL* next;
+    Plane* value;
+    struct LL* sub;
+    int subType;
+} LL;
+
+LL* setupLL();
 
 class Driver {
     public:
@@ -116,11 +137,20 @@ class Driver {
         Plane* funcArgDec(char* arg_name, int arg_type, Plane* arg_follow);
         Plane* indexing(char* var, Plane* index);
         Plane* indexOpt(Plane* from, Plane* to);
-        void dumpStatement(Plane* p);
-        void finalizeTree();
+        Plane* createAssign(char* var, int assignment_type, Plane* rightSide);
+        Plane* forLoop(char* ident, Plane* fromTo, LL* subBlock);
+        Plane* ifBlock(Plane* bExp, LL* sub, LL* elChain);
+        LL* elBlock(Plane* ifExp, LL* subBlock, LL* nextElseChain);
+        LL* addToList(Plane* curr, LL* follow);
+        Plane* funcHead(int var_type, Plane* funcDec);
+        Plane* funcDecl(char* ident, Plane* args, LL* sub);
+        LL* statementChain(Plane* curr, LL* next);
+        Plane* ignore();
 };
 
 void noImplement(const char* s);
+
+void dumpStatement(Plane* p);
 
 //void traverseTree(Plane* root);
 

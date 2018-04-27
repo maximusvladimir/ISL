@@ -7,6 +7,7 @@ using namespace std;
 
 stack<Plane*> s;
 int REG_COUNT;
+int block_id;
 
 void assertStack(int n) {
     if (s.size() < n) {
@@ -14,16 +15,105 @@ void assertStack(int n) {
     }
 }
 
+LL* setupLL() {
+    LL* l = (LL*)malloc(sizeof(LL));
+    l->next = NULL;
+    l->value = NULL;
+    l->sub = NULL;
+    l->subType = 0;
+    return l;
+}
+
 Plane* setupPlane(int type) {
     Plane* p = (Plane*)malloc(sizeof(Plane));
     p->type = type;
     p->left = NULL;
     p->right = NULL;
+    p->sub = NULL;
+    p->currentBlock = ++block_id;
     return p;
 }
 
 Driver::Driver() {
     REG_COUNT = 0;
+    block_id = 0;
+}
+
+Plane* Driver::ignore() {
+    return setupPlane(N_IGN_STR);
+}
+
+LL* Driver::statementChain(Plane* curr, LL* next) {
+    LL* l = setupLL();
+    l->subType = B_REG_CON;
+    l->value = curr;
+    l->next = next;
+    return l;
+}
+
+Plane* Driver::funcDecl(char* ident, Plane* args, LL* sub) {
+    Plane* i = setupPlane(N_FUN_BDY);
+    i->left = this->index2(ident);
+    i->right = args;
+    i->sub = sub;
+    return i;
+}
+
+Plane* Driver::funcHead(int var_type, Plane* funcDec) {
+    Plane* b = setupPlane(N_FUN_HED);
+    b->left = setupPlane(var_type);
+    b->right = funcDec;
+    
+    return b;
+}
+
+LL* Driver::elBlock(Plane* ifExp, LL* subBlock, LL* nextElseChain) {
+    LL* l = setupLL();
+    l->subType = B_ELB_CON;
+    l->value = ifExp;
+    l->sub = subBlock;
+    l->next = nextElseChain;
+    return l;
+}
+
+Plane* Driver::ifBlock(Plane* bExp, LL* sub, LL* elChain) {
+    Plane* iBlock = setupPlane(N_IFB_STR);
+    iBlock->left = bExp;
+    iBlock->sub = sub;
+    
+    Plane* elBlock = setupPlane(N_ELB_STR);
+    elBlock->sub = elChain;
+    
+    iBlock->right = elBlock;
+   
+    return iBlock;
+}
+
+Plane* Driver::forLoop(char* ident, Plane* fromTo, LL* subBlock) {
+    Plane* fLoop = setupPlane(N_FOR_STR);
+    fLoop->left = this->index2(ident);
+    fLoop->right = fromTo;
+    fLoop->sub = subBlock;
+
+    return fLoop;
+}
+
+LL* Driver::addToList(Plane* curr, LL* follow) {
+    LL* nl = setupLL();
+    nl->next = follow;
+    nl->value = curr;
+    return nl;
+}
+
+Plane* Driver::createAssign(char* var, int assignment_type, Plane* rightSide) {
+    Plane* id = setupPlane(N_IDEN);
+    id->val.str = var;
+    
+    Plane* r = setupPlane(assignment_type);
+    r->left = id;
+    r->right = rightSide;
+   
+    return r;
 }
 
 Plane* Driver::createDecl(int type2, char* ident, int a_type, Plane* right_side) {
@@ -231,10 +321,6 @@ Plane* Driver::indexOpt(Plane* from, Plane* to) {
     return i;
 }
 
-void Driver::finalizeTree() {
-    printf("Hi there!");
-}
-
 void tabHelper(int l) {
     int i;
     for (i = 0; i < l; i++) {
@@ -270,7 +356,7 @@ void traverseTreeSub(Plane* root, int level) {
 }
 
 
-void Driver::dumpStatement(Plane* r) {
+void dumpStatement(Plane* r) {
     traverseTreeSub(r, 0);
     printf("\n\n");
 }

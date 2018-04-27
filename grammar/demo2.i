@@ -3,3 +3,8 @@ var j := 20 * 40
 var k := sin(30 * 12 + 6) + cos(2)
 var l := [3, 4, 5, 6]
 var test := "hello world"
+
+func hi()
+	printf("hello world", "hello", 3)
+
+
