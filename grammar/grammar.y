@@ -33,7 +33,7 @@ extern void yyerror(Driver d, char const* s);
 %token OPERATOR_INC OPERATOR_DEC
 
 // Other Single Symbols
-%token SYM_STR_CHAR
+%token <str>	SYM_STR_CHAR
 
 // Keywords
 %token KEY_FOR_LOOP KEY_IF KEY_ELSE KEY_RETURN KEY_BREAK KEY_WHILE KEY_FUNC
@@ -258,17 +258,17 @@ unary_operator
 postfix_exp
 	: func_call					{ $$ = $1;								}
 	| IDENTIFIER				{ $$ = driver.index2($1);				}
-	| IDENTIFIER index			{ $$ = driver.index2($1); /* TODO */	}
+	| IDENTIFIER index			{ $$ = driver.indexing($1, $2);			}
 	| constant					{ $$ = $1;								}
 	| postfix_exp OPERATOR_INC	{ $$ = driver.incDecOpt($1, N_PST_INC);	}
 	| postfix_exp OPERATOR_DEC	{ $$ = driver.incDecOpt($1, N_PST_DEC);	}
 	;
 	
 index
-	: '@' constant						{ $$ = driver.index1($2); }
-	| '@' IDENTIFIER					{ $$ = driver.index2($2); }
-	| '@' '(' gen_exp ')'				{ $$ = NULL; noImplement("Array indexing");	} // skip for now.
-	| '@' '(' gen_exp ',' gen_exp ')'	{ $$ = NULL; noImplement("Array indexing");	}
+	: '@' constant						{ $$ = driver.indexOpt($2, NULL);					}
+	| '@' IDENTIFIER					{ $$ = driver.indexOpt(driver.index2($2), NULL);	}
+	| '@' '(' gen_exp ')'				{ $$ = driver.indexOpt($3, NULL);					}
+	| '@' '(' gen_exp ',' gen_exp ')'	{ $$ = driver.indexOpt($3, $5);						}
 	;
 
 constant
@@ -277,7 +277,7 @@ constant
 	| F32_NUMBER	{ $$ = driver.f32($1);	}
 	| F64_NUMBER	{ $$ = driver.f64($1);	}
 	| BOOL_NUMBER	{ $$ = driver.b($1);	}
-	| SYM_STR_CHAR 	{ $$ = NULL;/*$$ = driver.str($1);*/  }// move to add only
+	| SYM_STR_CHAR 	{ $$ = driver.str($1); printf("STR: %s\n", $1);  }// move to add only
 	;
 
 var_type

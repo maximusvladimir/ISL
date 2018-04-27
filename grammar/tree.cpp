@@ -176,13 +176,7 @@ Plane* Driver::index2(char* ident) {
     Plane* i = setupPlane(N_IDEN);
     i->val.str = ident;
 
-    return this->index1(i);
-}
-
-Plane* Driver::index1(Plane* p) {
-    Plane* p2 = setupPlane(N_INDX);
-    p2->left = p;
-    return p2;
+    return i;
 }
 
 Plane* Driver::i32(int val) {
@@ -219,6 +213,22 @@ Plane* Driver::str(char* c) {
     Plane* p = setupPlane(DT_STR);
     p->val.str = c;
     return p;
+}
+
+Plane* Driver::indexing(char* var, Plane* indexer) {
+    Plane* ident = this->index2(var);
+
+    Plane* p = setupPlane(N_ARR_IDX);
+    p->left = ident;
+    p->right = indexer;
+    return p;
+}
+
+Plane* Driver::indexOpt(Plane* from, Plane* to) {
+    Plane* i = setupPlane(N_IDX_MAR);
+    i->left = from;
+    i->right = to;
+    return i;
 }
 
 void Driver::finalizeTree() {

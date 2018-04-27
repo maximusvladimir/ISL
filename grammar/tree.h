@@ -36,6 +36,8 @@
 #define N_DEC_VAR   32      // A variable declaration that may or may not have a type. (left: type, right: identifier).
 #define N_FUN_CAG   33      // Function call argument list.
 #define N_DEC_DEC   34      // Filler decl.
+#define N_ARR_IDX   35      // Array indexing operation.
+#define N_IDX_MAR   36      // Array indexing multiargument. The left is the first argument. The right may or may not be null.
 
 #define A_REG       100
 #define A_ADD       101
@@ -103,7 +105,6 @@ class Driver {
         Plane* b(bool bo);
         Plane* str(char* s);
         Plane* index2(char* ident);
-        Plane* index1(Plane* p);
         Plane* incDecOpt(Plane* obj, int opt);
         Plane* bex(Plane* p1, Plane* p2, int opt);
         Plane* abtSeq(Plane* p1, Plane* p2);
@@ -113,6 +114,8 @@ class Driver {
         Plane* fromToConstruct(Plane* p1, Plane* p2);
         Plane* fromTo(Plane* p1, Plane* p2);
         Plane* funcArgDec(char* arg_name, int arg_type, Plane* arg_follow);
+        Plane* indexing(char* var, Plane* index);
+        Plane* indexOpt(Plane* from, Plane* to);
         void dumpStatement(Plane* p);
         void finalizeTree();
 };

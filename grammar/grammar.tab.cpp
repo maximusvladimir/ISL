@@ -1884,7 +1884,7 @@ yyreduce:
 
   case 93:
 #line 261 "grammar.y" /* yacc.c:1646  */
-    { (yyval.plane) = driver.index2((yyvsp[-1].str)); /* TODO */	}
+    { (yyval.plane) = driver.indexing((yyvsp[-1].str), (yyvsp[0].plane));			}
 #line 1889 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
@@ -1908,25 +1908,25 @@ yyreduce:
 
   case 97:
 #line 268 "grammar.y" /* yacc.c:1646  */
-    { (yyval.plane) = driver.index1((yyvsp[0].plane)); }
+    { (yyval.plane) = driver.indexOpt((yyvsp[0].plane), NULL);					}
 #line 1913 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 98:
 #line 269 "grammar.y" /* yacc.c:1646  */
-    { (yyval.plane) = driver.index2((yyvsp[0].str)); }
+    { (yyval.plane) = driver.indexOpt(driver.index2((yyvsp[0].str)), NULL);	}
 #line 1919 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 99:
 #line 270 "grammar.y" /* yacc.c:1646  */
-    { (yyval.plane) = NULL; noImplement("Array indexing");	}
+    { (yyval.plane) = driver.indexOpt((yyvsp[-1].plane), NULL);					}
 #line 1925 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 100:
 #line 271 "grammar.y" /* yacc.c:1646  */
-    { (yyval.plane) = NULL; noImplement("Array indexing");	}
+    { (yyval.plane) = driver.indexOpt((yyvsp[-3].plane), (yyvsp[-1].plane));						}
 #line 1931 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
@@ -1962,7 +1962,7 @@ yyreduce:
 
   case 106:
 #line 280 "grammar.y" /* yacc.c:1646  */
-    { (yyval.plane) = NULL;/*$$ = driver.str($1);*/  }
+    { (yyval.plane) = driver.str((yyvsp[0].str)); printf("STR: %s\n", (yyvsp[0].str));  }
 #line 1967 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
