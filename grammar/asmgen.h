@@ -35,7 +35,6 @@ void declareVar(int blockId, int type, char* ident);
 void asmCallFunc(int blockId, Plane* stmt);
 int asmGenExp(int blockId, Plane* stmt); // returns the current register the result of the gen exp is in.
 void asmAssign(int blockId, Plane* stmt);
-void asmMov(int blockId, int reg, char* rightSide);
 void traversePlaneForStrTable(Plane* p);
 void traverseListForStrTable(LL* l);
 void buildStringTable(LL* l);

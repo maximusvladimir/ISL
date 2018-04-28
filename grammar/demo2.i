@@ -4,6 +4,13 @@ var k := sin(j + 6) + cos(2)
 
 part2()
 
+func all()
+	var re := 10
+	var nx := re + 20
+	var py := nx + re
+	var yy := re + 40
+	var pt := re + nx * py * yy
+
 func part2()
 	printf(2 + 5 * 10, 123 + 123, 456)
 	printf(10)

@@ -1,133 +1,142 @@
 [BITS 32]
+i:		RESW	1
+j:		RESW	1
+k:		RESW	1
+re:		RESW	1
+nx:		RESW	1
+py:		RESW	1
+yy:		RESW	1
+pt:		RESW	1
+test:		RESW	1
 str0001:		DB	"hello",0
 str0000:		DB	"hello world",0
-itr0000:		resw	1
-itr0001:		resw	1
-itr0002:		resw	1
-itr0003:		resw	1
-i320000:		resw	1
-i320001:		resw	1
-i320002:		resw	1
-i320003:		resw	1
+ITR0000:		RESW	1
+ITR0001:		RESW	1
+ITR0002:		RESW	1
+ITR0003:		RESW	1
+TMP0000:		RESW	1
+TMP0001:		RESW	1
+TMP0002:		RESW	1
+TMP0003:		RESW	1
 
 :main
 	mov ???, 10
 	mov ???, 30
-	mov eax, r-1
-	mov edx, r-1
-	add edx
-	mov r0, edx
-	mov [i320000], r0			; [0] = i
+	add ???, ???
+	mov [i], ???
 	mov ???, 20
 	mov ???, 40
-	mov eax, r-1
-	mov edx, r-1
-	mul edx
-	mov r1, edx
-	mov [i320001], r1			; [1] = j
+	imul ???, ???
+	mov [j], ???
+	mov ???, [j]
 	mov ???, 6
-	mov eax, r999999999
-	mov edx, r-1
-	add edx
-	mov r2, edx
-	push r2
+	add ???, ???
+	push ???
 	call sin
-	mov r3, eax			; sin ret
+	mov r0, eax			; sin ret
 	mov ???, 2
-	push r-1
+	push ???
 	call cos
-	mov r4, eax			; cos ret
-	mov eax, r3
-	mov edx, r4
-	add edx
-	mov r5, edx
-	mov [i320002], r5			; [2] = k
+	mov r1, eax			; cos ret
+	add ???, ???
+	mov [k], ???
 	call part2
 
-:func1
+:func1		; all
+	mov eax, 10
+	mov [re], eax
+	mov eax, [re]
+	mov ebx, 20
+	add eax, ebx
+	mov [nx], eax
+	mov eax, [nx]
+	mov ebx, [re]
+	add eax, ebx
+	mov [py], eax
+	mov eax, [re]
+	mov ebx, 40
+	add eax, ebx
+	mov [yy], eax
+	mov eax, [re]
+	mov ebx, [nx]
+	mov edx, [py]
+	imul ebx, edx
+	mov edx, [yy]
+	imul ebx, edx
+	add eax, ebx
+	mov [pt], eax
+	ret
+
+:func2		; part2
 	mov eax, 2
 	mov ebx, 5
-	mov ???, 10
-	mov eax, r-3
-	mov edx, r-1
-	mul edx
-	mov r0, edx
-	mov edx, r0
-	add edx
-	mov r1, edx
-	push r1
+	mov edx, 10
+	imul ebx, edx
+	add eax, ebx
+	push eax
 	call printf
-	mov ???, 10
-	push r-1
+	mov ebx, 10
+	push ebx
 	call printf
 	mov ecx, [itr0000]
 	mov eax, [itr0001]
 	cmp ecx, eax
-	jge blockend2
-:block2
+	jge blockend3
+:block3
 	mov ecx, [iter000]
-	push r999999999
+	mov eax, [q]
+	push eax
 	call printf
 	mov ecx, [itr0002]
 	mov eax, [itr0003]
 	cmp ecx, eax
-	jge blockend3
-:block3
+	jge blockend4
+:block4
 	mov ecx, [iter002]
-	mov eax, r999999999
-	mov edx, r999999999
-	mul edx
-	mov r0, edx
-	push r0
+	mov eax, [q]
+	mov ebx, [t]
+	imul eax, ebx
+	push eax
 	call printf
 	inc ecx
 	mov [itr0002], ecx
 	mov eax, [itr0003]
 	cmp ecx, eax
-	jl block3
-:blockend3
+	jl block4
+:blockend4
 	inc ecx
 	mov [itr0000], ecx
 	mov eax, [itr0001]
 	cmp ecx, eax
-	jl block2
-:blockend2
+	jl block3
+:blockend3
 	ret
 
-:func4
+:func5		; hi
 	mov eax, 6
 	mov ebx, 10
-	mov ???, 32
-	mov eax, r-3
-	mov edx, r-1
-	mul edx
-	mov r0, edx
-	mov edx, r0
-	add edx
-	mov r1, edx
-	mov ???, 4
-	mov ???, 2
-	mov eax, r-1
-	mov edx, r-1
-	div edx
-	mov r2, edx
-	mov eax, r1
-	mov edx, r2
-	add edx
-	mov r3, edx
-	mov ???, 1
-	mov eax, r3
-	mov edx, r-1
-	add edx
-	mov r4, edx
-	mov [i320003], r4			; [3] = test
-	mov ???, 2
-	mov [5], r-1			; [5] = test
-	mov r6, STR0000
-	push r6
+	mov edx, 32
+	imul ebx, edx
+	add eax, ebx
+	mov ebx, 4
+	mov edx, 2
+	mov [TMP0000], eax
+	mov eax, ebx
+	idiv edx
+	mov ebx, eax
+	mov eax, [TMP0000]
+	add eax, ebx
+	mov ebx, 1
+	add eax, ebx
+	mov [test], eax
+	mov eax, 2
+	mov [0], r-2			; [0] = test
+	mov r1, STR0000
+	push ???
 	call printf
-	mov r7, STR0001
-	mov [i32999999999], r7			; [999999999] = hw
-	push r999999999
+	mov r2, STR0001
+	mov [hw], ???
+	mov ebx, [hw]
+	push ebx
 	call printf
 	ret

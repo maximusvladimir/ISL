@@ -4,13 +4,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BUILT_COUNT	1
+#define BUILT_COUNT		1
+#define TMP_REG_COUNT	4
 
 SymTable* masterTable;
 Block* masterBlock;
 Block* originMaster;
 StrTable* stringTable;
 const char* builtInFunctions[BUILT_COUNT] = {"printf"};
+const char* tmpVars[4] = {"tmp0", "tmp1", "tmp2", "tmp3"};
 int blockIter;
 int masterBlockCount;
 int currReg;
@@ -18,7 +20,8 @@ int currStrRef;
 int loopIterators;
 int currLoopIterator;
 int currI32Var, countI32Var;
-bool freeEAX, freeEBX;
+bool freeEAX, freeEBX, freeEDX;
+bool freeTMP0, freeTMP1, freeTMP2, freeTMP3;
 FILE* output;
 
 void debugDumpBlocks() {
@@ -40,21 +43,6 @@ void debugDumpBlocks() {
 		}
 		b = b->next;
 	}
-}
-
-void asmMov(int blockId, int reg, char* rightSide) {
-	const char* ss = "";
-	if (reg == R_EAX)
-		ss = "eax";
-	else if (reg == R_EBX)
-		ss = "ebx";
-	else if (reg == R_ECX)
-		ss = "ecx";
-	else if (reg == R_EDX)
-		ss = "edx";
-	else
-		printf("ERROR: Unknown register selected!\n");
-	fprintf(output, "\tmov %s, %s\n", ss, rightSide);
 }
 
 void traversePlaneForStrTable(Plane* p) {
@@ -84,7 +72,8 @@ void traversePlaneForStrTable(Plane* p) {
 			int type = p->left->left->val.i32;
 			// TODO: infer type by traversing right side of assignmnet.
 			if (type == DT_VAR || type == DT_I32) { // make all VAR as I32 (for now)!
-				countI32Var++;
+				//countI32Var++;
+				fprintf(output, "%s:\t\tRESW\t1\n", p->left->right->val.str);
 			}
 			//printf("%d\n", type);
 		}
@@ -140,11 +129,15 @@ void setupHeader(LL* l) {
 
 	int i;
 	for (i = 0; i < loopIterators; i++) {
-		fprintf(output, "itr%04d:\t\tresw\t1\n", i);
+		fprintf(output, "ITR%04d:\t\tRESW\t1\n", i);
 	}
 
-	for (i = 0; i < countI32Var; i++) {
+	/*for (i = 0; i < countI32Var; i++) {
 		fprintf(output, "i32%04d:\t\tresw\t1\n", i);
+	}*/
+
+	for (i = 0; i < TMP_REG_COUNT; i++) {
+		fprintf(output, "TMP%04d:\t\tRESW\t1\n", i);
 	}
 
 	fprintf(output, "\n");
@@ -249,6 +242,43 @@ bool addToSymTable(int blockId, int type, char* ident) {
 	return true;
 }
 
+const char* map_reg(int num) {
+	if (num == -2) {
+		return "eax";
+	} else if (num == -3) {
+		return "ebx";
+	} else if (num == -4) {
+		return "edx";
+	}
+	return "???";
+}
+
+const char* get_tmp(int &n) {
+	if (freeEAX) {
+		n = - 2;
+		return "eax";
+	} else if (freeEBX) {
+		n = -3;
+		return "ebx";
+	} else if (freeEDX) {
+		n = -4;
+		return "edx";
+	} else if (freeTMP0) {
+		n = -5;
+		return "[TMP0000]";
+	} else if (freeTMP1) {
+		n = -6;
+		return "[TMP0001]";
+	} else if (freeTMP2) {
+		n = -7;
+		return "[TMP0002]";
+	} else if (freeTMP3) {
+		n = -8;
+		return "[TMP0003]";
+	}
+	return "???";
+}
+
 int asmGenExp(int blockId, Plane* stmt) {
 	// TODO!
 	if (stmt->type == DT_STR) {
@@ -271,6 +301,10 @@ int asmGenExp(int blockId, Plane* stmt) {
 			freeEBX = false;
 			reg = "ebx";
 			ret = -3;
+		} else if (freeEDX) {
+			freeEDX = false;
+			reg = "edx";
+			ret = -4;
 		} else {
 			printf("WARN: No free register found!\n");
 		}
@@ -282,36 +316,55 @@ int asmGenExp(int blockId, Plane* stmt) {
 	if (stmt->type >= N_MUL && stmt->type <= N_MOD) {
 		int left = asmGenExp(blockId, stmt->left);
 		int right = asmGenExp(blockId, stmt->right);
-		// todo: protect EAX!
-		if (left != -2) {
-			fprintf(output, "\tmov eax, r%d\n", left);
-		}
-		if (right != -3) {
-			fprintf(output, "\tmov edx, r%d\n", right);
-		} else {
-			fprintf(output, "\tmov edx, ebx\n");
-		}
-		//asmMov(blockId, R_EAX, "r%d
+
+		const char* reg_left = map_reg(left);
+		const char* reg_right = map_reg(right);
+
+		int tmp_var = 0;
+		const char* tmp = "";
+
 		switch (stmt->type) {
 			case N_MUL:
-				fprintf(output, "\tmul edx\n");
+				fprintf(output, "\timul %s, %s\n", reg_left, reg_right);
 				break;
 			case N_DIV:
-				fprintf(output, "\tdiv edx\n");
+				if (left != -2) {
+					if (!freeEAX) {
+						tmp = get_tmp(tmp_var);
+						fprintf(output, "\tmov %s, eax\n", tmp);
+					}
+					fprintf(output, "\tmov eax, %s\n", reg_left);
+				}
+				fprintf(output, "\tidiv %s\n", reg_right);
+				if (left != -2) {
+					fprintf(output, "\tmov %s, eax\n", reg_left);
+					if (!freeEAX) {
+						fprintf(output, "\tmov eax, %s\n", tmp);
+					}
+				}
 				break;
 			case N_ADD:
-				fprintf(output, "\tadd edx\n");
+				fprintf(output, "\tadd %s, %s\n", reg_left, reg_right);
 				break;
 			case N_SUB:
-				fprintf(output, "\tsub edx\n");
+				fprintf(output, "\tsub %s, %s\n", reg_left, reg_right);
 				break;
 			case N_MOD:
-				fprintf(output, "\tmod edx\n");
+				//fprintf(output, "\tmod edx\n");
+				// easiest way is using idiv, but fastest is bit shifts.
+				printf("Modulo is not supported at this time.\n");
 				break;
 		}
-		int reg = currReg++;
-		fprintf(output, "\tmov r%d, edx\n", reg);
-		return reg;
+		if (right == -2) {
+			freeEAX = true;
+		} else if (right == -3) {
+			freeEBX = true;
+		} else if (right == -4) {
+			freeEDX = true;
+		}
+		//int reg = currReg++;
+		//fprintf(output, "\tmov r%d, edx\n", reg);
+		return left;
 	}
 
 	if (stmt->type == N_FUN_CAL) {
@@ -324,6 +377,25 @@ int asmGenExp(int blockId, Plane* stmt) {
 	if (stmt->type == N_IDEN) {
 		// TODO: find the identifier in the symbol table.
 		//fprintf(output, "\tmov r%d, e
+		const char* reg = "???";
+		int ret = -1;
+		if (freeEAX) {
+			freeEAX = false;
+			reg = "eax";
+			ret = -2;
+		} else if (freeEBX) {
+			freeEBX = false;
+			reg = "ebx";
+			ret = -3;
+		} else if (freeEDX) {
+			freeEDX = false;
+			reg = "edx";
+			ret = -4;
+		} else {
+			printf("WARN: No free register found!\n");
+		}
+		fprintf(output, "\tmov %s, [%s]\n", reg, stmt->val.str);
+		return ret;
 	}
 
 	printf("ERROR: %d general expression is unsupported at this time.\n", stmt->type);
@@ -340,7 +412,15 @@ void asmCallFunc(int blockId, Plane* stmt) {
 			v = v->left;
 		}
 		int reg = asmGenExp(blockId, v);
-		fprintf(output, "\tpush r%d\n", reg);
+		const char* r = "???";
+		if (reg == -2) {
+			r = "eax";
+		} else if (reg == -3) {
+			r = "ebx";
+		} else if (reg == -4) {
+			r = "edx";
+		}
+		fprintf(output, "\tpush %s\n", r);
 		if (v->type == N_FUN_ARG) {
 			args = args->right;
 		} else {
@@ -359,10 +439,21 @@ void asmAssign(int blockId, Plane* stmt) {
 			int reg = asmGenExp(blockId, stmt->right);
 			int mem = 999999999;
 			//TODO: correctly point this to the right address or reg.
-			if (type == DT_VAR || type == DT_I32) {
+			/*if (type == DT_VAR || type == DT_I32) {
 				mem = currI32Var++;
+			}*/
+			const char* r = "???";
+			if (reg == -2) {
+				r = "eax";
+				freeEAX = true;
+			} else if (reg == -3) {
+				r = "ebx";
+				freeEBX = true;
+			} else if (reg == -4) {
+				r = "edx";
+				freeEDX = true;
 			}
-			fprintf(output, "\tmov [i32%04d], r%d\t\t\t; [%d] = %s\n", mem, reg, mem, stmt->left->right->val.str);
+			fprintf(output, "\tmov [%s], %s\n", stmt->left->right->val.str, r);
 		}
 	} else {
 		//dumpStatement(stmt);
@@ -392,8 +483,7 @@ void handleSubBlock(Block* parentBlock, int blockId, LL* data) {
 	int oldReg = currReg;
 	currReg = 0;
 	LL* curr = data;
-	freeEAX = true;
-	freeEBX = true;
+	freeEAX = freeEBX = freeEDX = freeTMP0 = freeTMP1 = freeTMP2 = freeTMP3 = true;
 	while (curr != NULL) {
 		Plane* stmt = curr->value;
 
@@ -468,7 +558,7 @@ void declareFunction(Plane* funcHead) {
 			dumpStatement(args); // TODO
 		}
 		int bi = ++blockIter;
-		fprintf(output, "\n:func%d\n", bi);
+		fprintf(output, "\n:func%d\t\t; %s\n", bi, ident->val.str);
 		handleSubBlock(originMaster, bi, funcHead->right->sub);
 		fprintf(output, "\tret\n");
 	}
