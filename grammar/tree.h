@@ -72,6 +72,7 @@
 #define DT_F64      1013
 #define DT_STR      1014
 #define DT_BOOL     1015
+#define DT_FUNC     1016
 
 typedef union PType {
     char i8;

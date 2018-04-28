@@ -346,6 +346,9 @@ void traverseTreeSub(Plane* root, int level) {
         printf("'%f'", (float)root->val.i32);
     } else {
         printf("%d", root->type);
+        if (root->sub != NULL) {
+            printf(":sub");
+        }
     }
 
     printf("\n");
