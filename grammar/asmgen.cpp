@@ -17,6 +17,8 @@ int currReg;
 int currStrRef;
 int loopIterators;
 int currLoopIterator;
+int currI32Var, countI32Var;
+bool freeEAX, freeEBX;
 FILE* output;
 
 void debugDumpBlocks() {
@@ -76,7 +78,17 @@ void traversePlaneForStrTable(Plane* p) {
 			stringTable->next = next;
 		}
 	} else if (p->type == N_FOR_STR) {
-		loopIterators++;
+		loopIterators += 2;
+	} else if (p->type >= 100 && p->type <= 200) {
+		if (p->left != NULL && p->left->left != NULL) {
+			int type = p->left->left->val.i32;
+			// TODO: infer type by traversing right side of assignmnet.
+			if (type == DT_VAR || type == DT_I32) { // make all VAR as I32 (for now)!
+				countI32Var++;
+			}
+			//printf("%d\n", type);
+		}
+		//countI32Var++;
 	}
 }
 
@@ -95,7 +107,7 @@ void buildStringTable(LL* l) {
 
 	StrTable* curr = stringTable;
 	while (curr != NULL) {
-		fprintf(output, "STR%04d DB %s,0\n", curr->ref, curr->val);
+		fprintf(output, "str%04d:\t\tDB\t%s,0\n", curr->ref, curr->val);
 
 		curr = curr->next;
 	}
@@ -128,7 +140,11 @@ void setupHeader(LL* l) {
 
 	int i;
 	for (i = 0; i < loopIterators; i++) {
-		fprintf(output, "iter%03d\t\tdd\t0\n", i);
+		fprintf(output, "itr%04d:\t\tresw\t1\n", i);
+	}
+
+	for (i = 0; i < countI32Var; i++) {
+		fprintf(output, "i32%04d:\t\tresw\t1\n", i);
 	}
 
 	fprintf(output, "\n");
@@ -139,6 +155,7 @@ void generateAsm(LL* l) {
 	currReg = 0;
 	currStrRef = 0;
 	masterBlockCount = 0;
+	countI32Var = currI32Var = 0;
 	output = fopen("output.asm", "w");
 	setupHeader(l);
 
@@ -241,17 +258,39 @@ int asmGenExp(int blockId, Plane* stmt) {
 		return reg;
 	}
 	if (stmt->type == DT_I32) {
-		int reg = currReg++;
+/*		int reg = currReg++;
 		fprintf(output, "\tmov r%d, %d\n", reg, stmt->val.i32);
-		return reg;
+		return reg;*/
+		const char* reg = "???";
+		int ret = -1;
+		if (freeEAX) {
+			freeEAX = false;
+			reg = "eax";
+			ret = -2;
+		} else if (freeEBX) {
+			freeEBX = false;
+			reg = "ebx";
+			ret = -3;
+		} else {
+			printf("WARN: No free register found!\n");
+		}
+		
+		fprintf(output, "\tmov %s, %d\n", reg, stmt->val.i32);
+		return ret;
 	}
 
 	if (stmt->type >= N_MUL && stmt->type <= N_MOD) {
 		int left = asmGenExp(blockId, stmt->left);
 		int right = asmGenExp(blockId, stmt->right);
 		// todo: protect EAX!
-		fprintf(output, "\tmov eax, r%d\n", left);
-		fprintf(output, "\tmov edx, r%d\n", right);
+		if (left != -2) {
+			fprintf(output, "\tmov eax, r%d\n", left);
+		}
+		if (right != -3) {
+			fprintf(output, "\tmov edx, r%d\n", right);
+		} else {
+			fprintf(output, "\tmov edx, ebx\n");
+		}
 		//asmMov(blockId, R_EAX, "r%d
 		switch (stmt->type) {
 			case N_MUL:
@@ -314,11 +353,16 @@ void asmCallFunc(int blockId, Plane* stmt) {
 void asmAssign(int blockId, Plane* stmt) {
 	// the type of assignment is in stmt->type.
 	if (stmt->left->type == N_DEC_VAR) {
-		declareVar(blockId, stmt->left->left->val.i32, stmt->left->right->val.str);
+		int type = stmt->left->left->val.i32;
+		declareVar(blockId, type, stmt->left->right->val.str);
 		if (stmt->right != NULL) {
 			int reg = asmGenExp(blockId, stmt->right);
-			int mem = currReg++;//TODO: correctly point this to the right address or reg.
-			fprintf(output, "\tmov [%d], r%d\t\t\t; [%d] = %s\n", mem, reg, mem, stmt->left->right->val.str);
+			int mem = 999999999;
+			//TODO: correctly point this to the right address or reg.
+			if (type == DT_VAR || type == DT_I32) {
+				mem = currI32Var++;
+			}
+			fprintf(output, "\tmov [i32%04d], r%d\t\t\t; [%d] = %s\n", mem, reg, mem, stmt->left->right->val.str);
 		}
 	} else {
 		//dumpStatement(stmt);
@@ -348,6 +392,8 @@ void handleSubBlock(Block* parentBlock, int blockId, LL* data) {
 	int oldReg = currReg;
 	currReg = 0;
 	LL* curr = data;
+	freeEAX = true;
+	freeEBX = true;
 	while (curr != NULL) {
 		Plane* stmt = curr->value;
 
@@ -382,17 +428,28 @@ void declareVar(int blockId, int type, char* ident) {
 void asmGenForeach(Block* parentBlock, int blockId, Plane* stmt) {
 	char* ident = stmt->left->val.str;
 	int bi = ++blockIter;
-	int claimed = currLoopIterator++;
+	int claimed1 = currLoopIterator++;
+	int claimed2 = currLoopIterator++;
 	//declareVar(bi, DT_I32, ident);
-	fprintf(output, "\tmov iter%03d, 0\n", claimed);
+	//fprintf(output, "\tmov ecx, [iter%03d]\n", claimed1);
+	fprintf(output, "\tmov ecx, [itr%04d]\n", claimed1); // claimed 1 has the starting var in it.
+	fprintf(output, "\tmov eax, [itr%04d]\n", claimed2);
+	fprintf(output, "\tcmp ecx, eax\n");
+	fprintf(output, "\tjge blockend%d\n", bi);
 	fprintf(output, ":block%d\n", bi);
+	fprintf(output, "\tmov ecx, [iter%03d]\n", claimed1); // claimed 1 has the starting var in it.
 	//printf("%d\n", currLoopIterator);
 	//printf("%d allowed\n", loopIterators);//fprintf(output, "iter%03d\t\tdd\t0\n", i);
 	handleSubBlock(parentBlock, bi, stmt->sub);
-	fprintf(output, "\tmov eax, 0\n");
-	fprintf(output, "\tinc iter%03d\n", claimed);
-	fprintf(output, "\tje block%d\n", bi);
-	fprintf(output, "; end block %d\n", bi);
+	//fprintf(output, "\tmov eax, 0\n");
+	fprintf(output, "\tinc ecx\n");//iter%03d\n", claimed);
+	fprintf(output, "\tmov [itr%04d], ecx\n", claimed1);
+	fprintf(output, "\tmov eax, [itr%04d]\n", claimed2);
+	fprintf(output, "\tcmp ecx, eax\n");
+	fprintf(output, "\tjl block%d\n", bi);
+	fprintf(output, ":blockend%d\n", bi);
+	//fprintf(output, "\tje block%d\n", bi);
+	//fprintf(output, "; end block %d\n", bi);
 }
 
 void declareFunction(Plane* funcHead) {

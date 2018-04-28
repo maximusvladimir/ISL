@@ -9,6 +9,8 @@ func part2()
 	printf(10)
 	foreach q from 0 to 10
 		printf(q)
+		foreach t from 0 to 10
+			printf(q * t)
 
 func hi()
 	var test := 6 + 10 * 32 + 4 / 2 + 1
