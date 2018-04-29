@@ -46,6 +46,7 @@
 #define N_FUN_HED   42      // Just the function head. Contains the type and in the left and the right contains the body and rest of head.
 #define N_FUN_BDY   43      // The function identifier in the left, the function args in the right, and sub contains the body list.
 #define N_IGN_STR   44      // Please ignore. This might be in a statement chain (LL*).
+#define N_FUN_RET   45      // Return statement. Left contains the gen_exp that was returned, or null.
 
 #define A_REG       100
 #define A_ADD       101
@@ -146,6 +147,7 @@ class Driver {
         Plane* funcHead(int var_type, Plane* funcDec);
         Plane* funcDecl(char* ident, Plane* args, LL* sub);
         LL* statementChain(Plane* curr, LL* next);
+        Plane* ret(Plane* exp);
         Plane* ignore();
 };
 

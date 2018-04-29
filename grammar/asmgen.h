@@ -32,7 +32,7 @@ void generateAsm(LL* prog);
 void declareFunction(Plane* funcHead);
 void handleSubBlock(Block* parentBlock, int blockId, LL* data);
 void declareVar(int blockId, int type, char* ident);
-void asmCallFunc(int blockId, Plane* stmt);
+int asmCallFunc(int blockId, Plane* stmt);
 int asmGenExp(int blockId, Plane* stmt); // returns the current register the result of the gen exp is in.
 void asmAssign(int blockId, Plane* stmt);
 void traversePlaneForStrTable(Plane* p);
@@ -41,7 +41,11 @@ void buildStringTable(LL* l);
 void setupHeader(LL* l);
 void asmGenForeach(Block* parentBlock, int blockId, Plane* stmt);
 StrTable* getString(char* c);
-
+const char* map_reg(int num);
+const char* get_tmp(int &n);
+int asmGenMath(int blockId, Plane* stmt);
+const char* consume_reg(int &reg_num);
+const char* free_reg(int reg_num);
 
 void debugDumpSymTable();
 void debugDumpBlocks();

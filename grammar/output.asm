@@ -1,118 +1,128 @@
 [BITS 32]
-i:		RESW	1
-j:		RESW	1
-k:		RESW	1
-re:		RESW	1
-nx:		RESW	1
-py:		RESW	1
-yy:		RESW	1
-pt:		RESW	1
-test:		RESW	1
-str0001:		DB	"hello",0
-str0000:		DB	"hello world",0
-ITR0000:		RESW	1
-ITR0001:		RESW	1
-ITR0002:		RESW	1
-ITR0003:		RESW	1
-TMP0000:		RESW	1
-TMP0001:		RESW	1
-TMP0002:		RESW	1
-TMP0003:		RESW	1
 
-:main
-	mov ???, 10
-	mov ???, 30
-	add ???, ???
-	mov [i], ???
-	mov ???, 20
-	mov ???, 40
-	imul ???, ???
-	mov [j], ???
-	mov ???, [j]
-	mov ???, 6
-	add ???, ???
-	push ???
-	call sin
-	mov r0, eax			; sin ret
-	mov ???, 2
-	push ???
-	call cos
-	mov r1, eax			; cos ret
-	add ???, ???
-	mov [k], ???
-	call part2
+global main
+extern puts
 
-:func1		; all
+section .bss
+	var_i:		RESW	1
+	var_j:		RESW	1
+	var_nl0:		RESW	1
+	var_nl1:		RESW	1
+	var_nl2:		RESW	1
+	var_re:		RESW	1
+	var_nx:		RESW	1
+	var_py:		RESW	1
+	var_yy:		RESW	1
+	var_pt:		RESW	1
+	var_test:		RESW	1
+	ITR0000:		RESW	1
+	ITR0001:		RESW	1
+	ITR0002:		RESW	1
+	ITR0003:		RESW	1
+	TMP0000:		RESW	1
+	TMP0001:		RESW	1
+	TMP0002:		RESW	1
+	TMP0003:		RESW	1
+
+section .data
+	str0001:		DB	"hello world",0
+	str0000:		DB	"\n",0
+
+section .text
+
+main:
 	mov eax, 10
-	mov [re], eax
-	mov eax, [re]
+	mov ebx, 30
+	add eax, ebx
+	mov [var_i], eax
+	mov eax, 20
+	mov ebx, 40
+	imul eax, ebx
+	mov [var_j], eax
+	mov eax, STR0000
+	mov [var_nl0], eax
+	mov eax, STR0000
+	mov [var_nl1], eax
+	mov eax, STR0000
+	mov [var_nl2], eax
+	call all
+	mov ebx, eax
+	call part2
+	mov edx, eax ; it
+	mov eax, ebx
+
+func1:		; all
+	push ebp
+	mov ebp, esp
+	and esp, 0FFFFFFF0H;
+	mov eax, 10
+	mov [var_re], eax
+	mov eax, [var_re]
 	mov ebx, 20
 	add eax, ebx
-	mov [nx], eax
-	mov eax, [nx]
-	mov ebx, [re]
+	mov [var_nx], eax
+	mov eax, [var_nx]
+	mov ebx, [var_re]
 	add eax, ebx
-	mov [py], eax
-	mov eax, [re]
+	mov [var_py], eax
+	mov eax, [var_re]
 	mov ebx, 40
 	add eax, ebx
-	mov [yy], eax
-	mov eax, [re]
-	mov ebx, [nx]
-	mov edx, [py]
+	mov [var_yy], eax
+	mov eax, [var_re]
+	mov ebx, [var_nx]
+	mov edx, [var_py]
 	imul ebx, edx
-	mov edx, [yy]
+	mov edx, [var_yy]
 	imul ebx, edx
 	add eax, ebx
-	mov [pt], eax
+	mov [var_pt], eax
+	mov esp, ebp
+	pop ebp
 	ret
 
-:func2		; part2
-	mov eax, 2
-	mov ebx, 5
-	mov edx, 10
-	imul ebx, edx
-	add eax, ebx
-	push eax
-	call printf
-	mov ebx, 10
-	push ebx
-	call printf
+func2:		; part2
+	push ebp
+	mov ebp, esp
+	and esp, 0FFFFFFF0H;
+	mov eax, 0
+	mov [var_i], eax
 	mov ecx, [itr0000]
 	mov eax, [itr0001]
 	cmp ecx, eax
 	jge blockend3
-:block3
+block3:
 	mov ecx, [iter000]
-	mov eax, [q]
-	push eax
-	call printf
 	mov ecx, [itr0002]
 	mov eax, [itr0003]
 	cmp ecx, eax
 	jge blockend4
-:block4
+block4:
 	mov ecx, [iter002]
-	mov eax, [q]
-	mov ebx, [t]
+	mov eax, [var_q]
+	mov ebx, [var_t]
 	imul eax, ebx
-	push eax
-	call printf
+	mov [var_i], eax
 	inc ecx
 	mov [itr0002], ecx
 	mov eax, [itr0003]
 	cmp ecx, eax
 	jl block4
-:blockend4
+blockend4:
 	inc ecx
 	mov [itr0000], ecx
 	mov eax, [itr0001]
 	cmp ecx, eax
 	jl block3
-:blockend3
+blockend3:
+	mov esp, ebp
+	pop ebp
 	ret
 
-:func5		; hi
+func5:		; hi
+	push ebp
+	mov ebp, esp
+	and esp, 0FFFFFFF0H;
 	mov eax, 6
 	mov ebx, 10
 	mov edx, 32
@@ -128,15 +138,15 @@ TMP0003:		RESW	1
 	add eax, ebx
 	mov ebx, 1
 	add eax, ebx
-	mov [test], eax
+	mov [var_test], eax
 	mov eax, 2
-	mov [0], r-2			; [0] = test
-	mov r1, STR0000
-	push ???
-	call printf
-	mov r2, STR0001
-	mov [hw], ???
-	mov ebx, [hw]
+	mov [var_test], eax
+	mov ebx, STR0001
 	push ebx
-	call printf
+	mov ebx, eax
+	call puts
+	mov edx, eax ; it
+	mov eax, ebx
+	mov esp, ebp
+	pop ebp
 	ret

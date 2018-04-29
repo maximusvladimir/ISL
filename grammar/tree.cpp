@@ -321,6 +321,12 @@ Plane* Driver::indexOpt(Plane* from, Plane* to) {
     return i;
 }
 
+Plane* Driver::ret(Plane* exp) {
+    Plane* i = setupPlane(N_FUN_RET);
+    i->left = exp;
+    return i;
+}
+
 void tabHelper(int l) {
     int i;
     for (i = 0; i < l; i++) {

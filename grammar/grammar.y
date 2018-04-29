@@ -101,8 +101,8 @@ statement
 	| var_type IDENTIFIER OPERATOR_DEEP_ASSIGNMENT gen_exp '\n'	{ $$ = driver.createDecl($1, $2, A_DEP, $4);	}
 	| func_call '\n'											{ $$ = $1;										}
 	| assign_update_statement '\n'								{ $$ = $1;										}
-	| KEY_RETURN gen_exp '\n'									{ $$ = NULL; /* TODO */							}
-	| KEY_RETURN '\n'											{ $$ = NULL; /* TODO */							}
+	| KEY_RETURN gen_exp '\n'									{ $$ = driver.ret($2);							}
+	| KEY_RETURN '\n'											{ $$ = driver.ret(NULL);						}
 	| block														{ $$ = $1;										}
 	;
 

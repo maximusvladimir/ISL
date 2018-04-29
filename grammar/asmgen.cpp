@@ -54,16 +54,31 @@ void traversePlaneForStrTable(Plane* p) {
 	traversePlaneForStrTable(p->right);
 
 	if (p->type == DT_STR) {
-		StrTable* tmp = (StrTable*)malloc(sizeof(StrTable));
-		tmp->next = NULL;
-		tmp->ref = currStrRef++;
-		tmp->val = p->val.str;
-		if (stringTable == NULL) {
-			stringTable = tmp;
-		} else {
-			StrTable* next = stringTable;
-			stringTable = tmp;
-			stringTable->next = next;
+		char* val = p->val.str;
+
+		bool found = false;
+		StrTable* test = stringTable;
+		while (test != NULL) {
+			if (strcmp(test->val, val) == 0) {
+				found = true;
+				break;
+			}
+
+			test = test->next;
+		}
+		
+		if (!found) {
+			StrTable* tmp = (StrTable*)malloc(sizeof(StrTable));
+			tmp->next = NULL;
+			tmp->ref = currStrRef++;
+			tmp->val = p->val.str;
+			if (stringTable == NULL) {
+				stringTable = tmp;
+			} else {
+				StrTable* next = stringTable;
+				stringTable = tmp;
+				stringTable->next = next;
+			}
 		}
 	} else if (p->type == N_FOR_STR) {
 		loopIterators += 2;
@@ -73,7 +88,7 @@ void traversePlaneForStrTable(Plane* p) {
 			// TODO: infer type by traversing right side of assignmnet.
 			if (type == DT_VAR || type == DT_I32) { // make all VAR as I32 (for now)!
 				//countI32Var++;
-				fprintf(output, "%s:\t\tRESW\t1\n", p->left->right->val.str);
+				fprintf(output, "\tvar_%s:\t\tRESW\t1\n", p->left->right->val.str);
 			}
 			//printf("%d\n", type);
 		}
@@ -93,13 +108,6 @@ void traverseListForStrTable(LL* l) {
 void buildStringTable(LL* l) {
 	stringTable = NULL;
 	traverseListForStrTable(l);
-
-	StrTable* curr = stringTable;
-	while (curr != NULL) {
-		fprintf(output, "str%04d:\t\tDB\t%s,0\n", curr->ref, curr->val);
-
-		curr = curr->next;
-	}
 }
 
 StrTable* getString(char* c) {
@@ -116,31 +124,44 @@ StrTable* getString(char* c) {
 	return curr;
 }
 
+void outputStringTable() {
+	StrTable* curr = stringTable;
+	while (curr != NULL) {
+		fprintf(output, "\tstr%04d:\t\tDB\t%s,0\n", curr->ref, curr->val);
+
+		curr = curr->next;
+	}
+}
+
 void setupHeader(LL* l) {
 	/*int i;
 	for (i = 0; i < 16; i++) {
 		fprintf(output, "tmpi32%02d\t\tdd\t0\n", i);
 	}*/
-	fprintf(output, "[BITS 32]\n");
+	fprintf(output, "[BITS 32]\n\n");
+	fprintf(output, "global main\n");
+	fprintf(output, "extern puts\n");
 	loopIterators = 0;
 	currLoopIterator = 0;
+
+	fprintf(output, "\nsection .bss\n");
 
 	buildStringTable(l);
 
 	int i;
 	for (i = 0; i < loopIterators; i++) {
-		fprintf(output, "ITR%04d:\t\tRESW\t1\n", i);
+		fprintf(output, "\tITR%04d:\t\tRESW\t1\n", i);
 	}
-
-	/*for (i = 0; i < countI32Var; i++) {
-		fprintf(output, "i32%04d:\t\tresw\t1\n", i);
-	}*/
 
 	for (i = 0; i < TMP_REG_COUNT; i++) {
-		fprintf(output, "TMP%04d:\t\tRESW\t1\n", i);
+		fprintf(output, "\tTMP%04d:\t\tRESW\t1\n", i);
 	}
 
-	fprintf(output, "\n");
+	fprintf(output, "\nsection .data\n");
+
+	outputStringTable();
+
+	fprintf(output, "\nsection .text\n\n");
 }
 
 void generateAsm(LL* l) {
@@ -157,7 +178,9 @@ void generateAsm(LL* l) {
 	masterBlock->parentBlock = masterBlock->next = NULL;
 	originMaster = masterBlock;
 
-	fprintf(output, ":main\n");
+	fprintf(output, "main:\n");
+
+	freeEAX = freeEBX = freeEDX = freeTMP0 = freeTMP1 = freeTMP2 = freeTMP3 = true;
 
 	LL* curr = l;
 	while (curr != NULL) {
@@ -242,6 +265,47 @@ bool addToSymTable(int blockId, int type, char* ident) {
 	return true;
 }
 
+const char* free_reg(int reg_num) {
+	const char* r = "???";
+	int reg = reg_num;
+	if (reg == -2) {
+		r = "eax";
+		freeEAX = true;
+	} else if (reg == -3) {
+		r = "ebx";
+		freeEBX = true;
+	} else if (reg == -4) {
+		r = "edx";
+		freeEDX = true;
+	} else {
+		printf("WARN: unable to free reg %d.\n", reg_num);
+	}
+	return r;
+}
+
+const char* consume_reg(int &reg_num) {
+	int ret = -1;
+	const char* reg = "";
+	if (freeEAX) {
+		freeEAX = false;
+		reg = "eax";
+		ret = -2;
+	} else if (freeEBX) {
+		freeEBX = false;
+		reg = "ebx";
+		ret = -3;
+	} else if (freeEDX) {
+		freeEDX = false;
+		reg = "edx";
+		ret = -4;
+	} else {
+		printf("WARN: No free register found!\n");
+		reg = "???";
+	}
+	reg_num = ret;
+	return reg;
+}
+
 const char* map_reg(int num) {
 	if (num == -2) {
 		return "eax";
@@ -279,122 +343,86 @@ const char* get_tmp(int &n) {
 	return "???";
 }
 
+int asmGenMath(int blockId, Plane* stmt) {
+	int left = asmGenExp(blockId, stmt->left);
+	int right = asmGenExp(blockId, stmt->right);
+
+	const char* reg_left = map_reg(left);
+	const char* reg_right = map_reg(right);
+
+	int tmp_var = 0;
+	const char* tmp = "";
+
+	switch (stmt->type) {
+		case N_MUL:
+			fprintf(output, "\timul %s, %s\n", reg_left, reg_right);
+			break;
+		case N_DIV:
+			if (left != -2) {
+				if (!freeEAX) {
+					tmp = get_tmp(tmp_var);
+					fprintf(output, "\tmov %s, eax\n", tmp);
+				}
+				fprintf(output, "\tmov eax, %s\n", reg_left);
+			}
+			fprintf(output, "\tidiv %s\n", reg_right);
+			if (left != -2) {
+				fprintf(output, "\tmov %s, eax\n", reg_left);
+				if (!freeEAX) {
+					fprintf(output, "\tmov eax, %s\n", tmp);
+				}
+			}
+			break;
+		case N_ADD:
+			fprintf(output, "\tadd %s, %s\n", reg_left, reg_right);
+			break;
+		case N_SUB:
+			fprintf(output, "\tsub %s, %s\n", reg_left, reg_right);
+			break;
+		case N_MOD:
+			//fprintf(output, "\tmod edx\n");
+			// easiest way is using idiv, but fastest is bit shifts.
+			printf("Modulo is not supported at this time.\n");
+			break;
+	}
+
+	free_reg(right);
+	//int reg = currReg++;
+	//fprintf(output, "\tmov r%d, edx\n", reg);
+	return left;
+}
+
 int asmGenExp(int blockId, Plane* stmt) {
 	// TODO!
 	if (stmt->type == DT_STR) {
-		int reg = currReg++;
 		StrTable* str = getString(stmt->val.str);
-		fprintf(output, "\tmov r%d, STR%04d\n", reg, str->ref);
-		return reg;
+		int r;
+		const char* reg = consume_reg(r);
+		fprintf(output, "\tmov %s, STR%04d\n", reg, str->ref);
+		return r;
 	}
 	if (stmt->type == DT_I32) {
-/*		int reg = currReg++;
-		fprintf(output, "\tmov r%d, %d\n", reg, stmt->val.i32);
-		return reg;*/
-		const char* reg = "???";
 		int ret = -1;
-		if (freeEAX) {
-			freeEAX = false;
-			reg = "eax";
-			ret = -2;
-		} else if (freeEBX) {
-			freeEBX = false;
-			reg = "ebx";
-			ret = -3;
-		} else if (freeEDX) {
-			freeEDX = false;
-			reg = "edx";
-			ret = -4;
-		} else {
-			printf("WARN: No free register found!\n");
-		}
+		const char* reg = consume_reg(ret);
 		
 		fprintf(output, "\tmov %s, %d\n", reg, stmt->val.i32);
 		return ret;
 	}
 
 	if (stmt->type >= N_MUL && stmt->type <= N_MOD) {
-		int left = asmGenExp(blockId, stmt->left);
-		int right = asmGenExp(blockId, stmt->right);
-
-		const char* reg_left = map_reg(left);
-		const char* reg_right = map_reg(right);
-
-		int tmp_var = 0;
-		const char* tmp = "";
-
-		switch (stmt->type) {
-			case N_MUL:
-				fprintf(output, "\timul %s, %s\n", reg_left, reg_right);
-				break;
-			case N_DIV:
-				if (left != -2) {
-					if (!freeEAX) {
-						tmp = get_tmp(tmp_var);
-						fprintf(output, "\tmov %s, eax\n", tmp);
-					}
-					fprintf(output, "\tmov eax, %s\n", reg_left);
-				}
-				fprintf(output, "\tidiv %s\n", reg_right);
-				if (left != -2) {
-					fprintf(output, "\tmov %s, eax\n", reg_left);
-					if (!freeEAX) {
-						fprintf(output, "\tmov eax, %s\n", tmp);
-					}
-				}
-				break;
-			case N_ADD:
-				fprintf(output, "\tadd %s, %s\n", reg_left, reg_right);
-				break;
-			case N_SUB:
-				fprintf(output, "\tsub %s, %s\n", reg_left, reg_right);
-				break;
-			case N_MOD:
-				//fprintf(output, "\tmod edx\n");
-				// easiest way is using idiv, but fastest is bit shifts.
-				printf("Modulo is not supported at this time.\n");
-				break;
-		}
-		if (right == -2) {
-			freeEAX = true;
-		} else if (right == -3) {
-			freeEBX = true;
-		} else if (right == -4) {
-			freeEDX = true;
-		}
-		//int reg = currReg++;
-		//fprintf(output, "\tmov r%d, edx\n", reg);
-		return left;
+		return asmGenMath(blockId, stmt);
 	}
 
 	if (stmt->type == N_FUN_CAL) {
-		asmCallFunc(blockId, stmt);
-		int reg = currReg++;
-		fprintf(output, "\tmov r%d, eax\t\t\t; %s ret\n", reg, stmt->left->val.str);
-		return reg;
+		return asmCallFunc(blockId, stmt);
 	}
 
 	if (stmt->type == N_IDEN) {
 		// TODO: find the identifier in the symbol table.
 		//fprintf(output, "\tmov r%d, e
-		const char* reg = "???";
 		int ret = -1;
-		if (freeEAX) {
-			freeEAX = false;
-			reg = "eax";
-			ret = -2;
-		} else if (freeEBX) {
-			freeEBX = false;
-			reg = "ebx";
-			ret = -3;
-		} else if (freeEDX) {
-			freeEDX = false;
-			reg = "edx";
-			ret = -4;
-		} else {
-			printf("WARN: No free register found!\n");
-		}
-		fprintf(output, "\tmov %s, [%s]\n", reg, stmt->val.str);
+		const char* reg = consume_reg(ret);
+		fprintf(output, "\tmov %s, [var_%s]\n", reg, stmt->val.str);
 		return ret;
 	}
 
@@ -402,24 +430,21 @@ int asmGenExp(int blockId, Plane* stmt) {
 	return 999999999;
 }
 
-void asmCallFunc(int blockId, Plane* stmt) {
-	char* ident = stmt->left->val.str;
+int asmCallFunc(int blockId, Plane* stmt) {
+	const char* ident = stmt->left->val.str;
+
+	if (strcmp(ident, "printf") == 0) {
+		ident = "puts"; // TODO: put this somewhere else.
+	}
+
 	Plane* args = stmt->right;
-	//dumpStatement(args);
 	while (args != NULL) {
 		Plane* v = args;
 		if (v->type == N_FUN_ARG) {
 			v = v->left;
 		}
 		int reg = asmGenExp(blockId, v);
-		const char* r = "???";
-		if (reg == -2) {
-			r = "eax";
-		} else if (reg == -3) {
-			r = "ebx";
-		} else if (reg == -4) {
-			r = "edx";
-		}
+		const char* r = free_reg(reg);
 		fprintf(output, "\tpush %s\n", r);
 		if (v->type == N_FUN_ARG) {
 			args = args->right;
@@ -427,40 +452,47 @@ void asmCallFunc(int blockId, Plane* stmt) {
 			args = NULL;
 		}
 	}
+	// fingers crossed I can mov after push, before call.
+	const char* tmp = "";
+	bool saveEAX = false;
+	int v;
+	if (!freeEAX) {
+		// save EAX if it's in use.
+		tmp = consume_reg(v);
+		saveEAX = true;
+		fprintf(output, "\tmov %s, eax\n", tmp);
+	}
 	fprintf(output, "\tcall %s\n", ident);
+	int ret;
+	const char* reg = consume_reg(ret);
+	if (strcmp(reg, "eax") != 0) {
+		fprintf(output, "\tmov %s, eax ; it\n", reg);
+	}
+	if (saveEAX) {
+		fprintf(output, "\tmov eax, %s\n", tmp);
+		free_reg(v);
+	}
+
+	return ret;
 }
 
 void asmAssign(int blockId, Plane* stmt) {
 	// the type of assignment is in stmt->type.
+	// TODO: consider all types of assignment, not just "assign".
 	if (stmt->left->type == N_DEC_VAR) {
 		int type = stmt->left->left->val.i32;
 		declareVar(blockId, type, stmt->left->right->val.str);
 		if (stmt->right != NULL) {
 			int reg = asmGenExp(blockId, stmt->right);
-			int mem = 999999999;
-			//TODO: correctly point this to the right address or reg.
-			/*if (type == DT_VAR || type == DT_I32) {
-				mem = currI32Var++;
-			}*/
-			const char* r = "???";
-			if (reg == -2) {
-				r = "eax";
-				freeEAX = true;
-			} else if (reg == -3) {
-				r = "ebx";
-				freeEBX = true;
-			} else if (reg == -4) {
-				r = "edx";
-				freeEDX = true;
-			}
-			fprintf(output, "\tmov [%s], %s\n", stmt->left->right->val.str, r);
+			const char* r = free_reg(reg);
+			fprintf(output, "\tmov [var_%s], %s\n", stmt->left->right->val.str, r);
 		}
 	} else {
 		//dumpStatement(stmt);
 		char* ident = stmt->left->val.str;
 		int reg = asmGenExp(blockId, stmt->right);
-		int mem = currReg++; // TODO: see if body.
-		fprintf(output, "\tmov [%d], r%d\t\t\t; [%d] = %s\n", mem, reg, mem, ident);
+		const char* r = map_reg(reg);
+		fprintf(output, "\tmov [var_%s], %s\n", ident, r);
 		// assignment without decleration
 	}
 	//dumpStatement(stmt);
@@ -520,26 +552,19 @@ void asmGenForeach(Block* parentBlock, int blockId, Plane* stmt) {
 	int bi = ++blockIter;
 	int claimed1 = currLoopIterator++;
 	int claimed2 = currLoopIterator++;
-	//declareVar(bi, DT_I32, ident);
-	//fprintf(output, "\tmov ecx, [iter%03d]\n", claimed1);
 	fprintf(output, "\tmov ecx, [itr%04d]\n", claimed1); // claimed 1 has the starting var in it.
 	fprintf(output, "\tmov eax, [itr%04d]\n", claimed2);
 	fprintf(output, "\tcmp ecx, eax\n");
 	fprintf(output, "\tjge blockend%d\n", bi);
-	fprintf(output, ":block%d\n", bi);
+	fprintf(output, "block%d:\n", bi);
 	fprintf(output, "\tmov ecx, [iter%03d]\n", claimed1); // claimed 1 has the starting var in it.
-	//printf("%d\n", currLoopIterator);
-	//printf("%d allowed\n", loopIterators);//fprintf(output, "iter%03d\t\tdd\t0\n", i);
 	handleSubBlock(parentBlock, bi, stmt->sub);
-	//fprintf(output, "\tmov eax, 0\n");
-	fprintf(output, "\tinc ecx\n");//iter%03d\n", claimed);
+	fprintf(output, "\tinc ecx\n");
 	fprintf(output, "\tmov [itr%04d], ecx\n", claimed1);
 	fprintf(output, "\tmov eax, [itr%04d]\n", claimed2);
 	fprintf(output, "\tcmp ecx, eax\n");
 	fprintf(output, "\tjl block%d\n", bi);
-	fprintf(output, ":blockend%d\n", bi);
-	//fprintf(output, "\tje block%d\n", bi);
-	//fprintf(output, "; end block %d\n", bi);
+	fprintf(output, "blockend%d:\n", bi);
 }
 
 void declareFunction(Plane* funcHead) {
@@ -552,14 +577,21 @@ void declareFunction(Plane* funcHead) {
 		printf("FATAL: %s has already been declared as a function. Overloading is not supported at this time.\n", ident->val.str);
 		exit(4);
 	} else {
+		int bi = ++blockIter;
+		fprintf(output, "\nfunc%d:\t\t; %s\n", bi, ident->val.str);
+		fprintf(output, "\tpush ebp\n");
+		fprintf(output, "\tmov ebp, esp\n");
+		fprintf(output, "\tand esp, 0FFFFFFF0H;\n");
 		if (args == NULL) {
 			// no arguments declared.
 		} else {
 			dumpStatement(args); // TODO
+			fprintf(output, "\tmov eax, [ebp+8]\n"); // the first argument.
 		}
-		int bi = ++blockIter;
-		fprintf(output, "\n:func%d\t\t; %s\n", bi, ident->val.str);
+
 		handleSubBlock(originMaster, bi, funcHead->right->sub);
+		fprintf(output, "\tmov esp, ebp\n");
+		fprintf(output, "\tpop ebp\n");
 		fprintf(output, "\tret\n");
 	}
 }

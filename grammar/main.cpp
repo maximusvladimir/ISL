@@ -1,6 +1,12 @@
+#include "app.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef SHOW_STACK
+#include <signal.h>
+#include <execinfo.h>
+#include <unistd.h>
+#endif
 #include "tree.h"
 
 extern void yyparse(Driver d);
@@ -10,6 +16,22 @@ extern int yylineno;
 
 FILE* fPtr;
 int usingFile;
+
+#ifdef SHOW_STACK
+void seghandler(int v) {
+	if (v == 11) {
+		void* bck[50];
+		size_t total;
+
+		total = backtrace(bck, 50);
+
+		printf("FATAL: SEG FAULT!\n");
+
+		backtrace_symbols_fd(bck, total, STDERR_FILENO);
+		exit(1);
+	}
+}
+#endif
 
 void yyerror(Driver d, char const* s)
 {
@@ -36,6 +58,10 @@ void yyerror(Driver d, char const* s)
 
 int main(int argc, const char* argv[])
 {
+#ifdef SHOW_STACK
+	signal(SIGSEGV, seghandler);
+#endif
+
 	Driver d;
 	if (argc == 1) {
 		usingFile = 0;

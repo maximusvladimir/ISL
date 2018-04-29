@@ -1536,13 +1536,13 @@ yyreduce:
 
   case 11:
 #line 104 "grammar.y" /* yacc.c:1646  */
-    { (yyval.plane) = NULL; /* TODO */							}
+    { (yyval.plane) = driver.ret((yyvsp[-1].plane));							}
 #line 1541 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 12:
 #line 105 "grammar.y" /* yacc.c:1646  */
-    { (yyval.plane) = NULL; /* TODO */							}
+    { (yyval.plane) = driver.ret(NULL);						}
 #line 1547 "grammar.tab.cpp" /* yacc.c:1646  */
     break;
 
