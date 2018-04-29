@@ -185,7 +185,7 @@ STR* str_debug_set(char* str) {
 
 
 
-int main(int argc, char** argv) {
+/*int main(int argc, char** argv) {
 	STR* hi = str_debug_set("Hello world!");
 	/*STR* bye = str_debug_set("\nGoodbye then.");
 	STR* w = str_debug_set("\nWait actually I'm not done...");
@@ -203,11 +203,11 @@ int main(int argc, char** argv) {
 	str_print(test);
 
 	str_free(test);
-	str_free(hi);*/
+	str_free(hi);*
 
 	printf("\n");
 	return 0;
-}
+}*/
 
 
 

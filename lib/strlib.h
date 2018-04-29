@@ -1,9 +1,7 @@
 #ifndef __HEADER_STRLIB
 #define __HEADER_STRLIB
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "app.h"
 
 #define CHAR char
 

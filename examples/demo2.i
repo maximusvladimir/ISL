@@ -27,3 +27,8 @@ func part2()
 */
 
 
+
+/*
+nasm -f elf32 output.asm -o output.o
+ld -e _main -m elf_i386 output.o -lc -o a.out
+*/

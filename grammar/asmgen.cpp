@@ -148,7 +148,7 @@ void setupHeader(LL* l) {
 		fprintf(output, "tmpi32%02d\t\tdd\t0\n", i);
 	}*/
 	fprintf(output, "[BITS 32]\n\n");
-	fprintf(output, "global main\n");
+	fprintf(output, "global _main\n");
 	fprintf(output, "extern puts\n");
 	loopIterators = 0;
 	currLoopIterator = 0;
@@ -187,7 +187,7 @@ void generateAsm(LL* l) {
 	masterBlock->parentBlock = masterBlock->next = NULL;
 	originMaster = masterBlock;
 
-	fprintf(output, "main:\n");
+	fprintf(output, "_main:\n");
 
 	freeEAX = freeEBX = freeEDX = freeTMP0 = freeTMP1 = freeTMP2 = freeTMP3 = true;
 

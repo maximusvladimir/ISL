@@ -1,6 +1,6 @@
 [BITS 32]
 
-global main
+global _main
 extern puts
 
 section .bss
@@ -26,7 +26,7 @@ section .data
 
 section .text
 
-main:
+_main:
 	mov eax, 10
 	mov ebx, 30
 	add eax, ebx
