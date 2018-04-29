@@ -15,10 +15,6 @@ section .bss
 	var_yy:		RESW	1
 	var_pt:		RESW	1
 	var_test:		RESW	1
-	ITR0000:		RESW	1
-	ITR0001:		RESW	1
-	ITR0002:		RESW	1
-	ITR0003:		RESW	1
 	TMP0000:		RESW	1
 	TMP0001:		RESW	1
 	TMP0002:		RESW	1
@@ -45,13 +41,13 @@ main:
 	mov [var_nl1], eax
 	mov eax, STR0000
 	mov [var_nl2], eax
-	call all
+	call func_all
 	mov ebx, eax
-	call part2
+	call func_part2
 	mov edx, eax ; it
 	mov eax, ebx
 
-func1:		; all
+func_all:
 	push ebp
 	mov ebp, esp
 	and esp, 0FFFFFFF0H;
@@ -81,45 +77,7 @@ func1:		; all
 	pop ebp
 	ret
 
-func2:		; part2
-	push ebp
-	mov ebp, esp
-	and esp, 0FFFFFFF0H;
-	mov eax, 0
-	mov [var_i], eax
-	mov ecx, [ITR0000]
-	mov eax, [ITR0001]
-	cmp ecx, eax
-	jge blockend3
-block3:
-	mov ecx, [ITR000]
-	mov ecx, [ITR0002]
-	mov eax, [ITR0003]
-	cmp ecx, eax
-	jge blockend4
-block4:
-	mov ecx, [ITR002]
-	mov eax, [var_q]
-	mov ebx, [var_t]
-	imul eax, ebx
-	mov [var_i], eax
-	inc ecx
-	mov [ITR0002], ecx
-	mov eax, [ITR0003]
-	cmp ecx, eax
-	jl block4
-blockend4:
-	inc ecx
-	mov [ITR0000], ecx
-	mov eax, [ITR0001]
-	cmp ecx, eax
-	jl block3
-blockend3:
-	mov esp, ebp
-	pop ebp
-	ret
-
-func5:		; hi
+func_hi:
 	push ebp
 	mov ebp, esp
 	and esp, 0FFFFFFF0H;
@@ -147,6 +105,16 @@ func5:		; hi
 	call puts
 	mov edx, eax ; it
 	mov eax, ebx
+	mov esp, ebp
+	pop ebp
+	ret
+
+func_part2:
+	push ebp
+	mov ebp, esp
+	and esp, 0FFFFFFF0H;
+	mov eax, 0
+	mov [var_i], eax
 	mov esp, ebp
 	pop ebp
 	ret

@@ -11,7 +11,7 @@ SymTable* masterTable;
 Block* masterBlock;
 Block* originMaster;
 StrTable* stringTable;
-const char* builtInFunctions[BUILT_COUNT] = {"printf"};
+const char* builtInFunctions[BUILT_COUNT] = {"write"};
 const char* tmpVars[4] = {"tmp0", "tmp1", "tmp2", "tmp3"};
 int blockIter;
 int masterBlockCount;
@@ -42,6 +42,15 @@ void debugDumpBlocks() {
 			printf("BLOCK #%d (parent #%d)\n", b->blockId, b->parentBlock->blockId);
 		}
 		b = b->next;
+	}
+}
+
+void debugDumpSymTable() {
+	SymTable* curr = masterTable;
+	while (curr != NULL) {
+		printf("%p: blockId: %d ident: %s type: %d\n", curr, curr->blockId, curr->ident, curr->type);
+
+		curr = curr->next;
 	}
 }
 
@@ -205,9 +214,46 @@ void generateAsm(LL* l) {
 		curr = curr->next;
 	}
 
-	debugDumpBlocks();
+	//debugDumpBlocks();
+	debugDumpSymTable();
 	
 	fclose(output);
+}
+
+SymTable* findFromSymTable(int blockId, const char* ident) {
+	if (masterTable == NULL) {
+		printf("WARN: trying to find something from the symbol table, yet the table is empty.\n");
+		return NULL;
+	}
+	Block* myBlock = NULL;
+	Block* curr = masterBlock;
+	while (curr != NULL) {
+		if (curr->blockId == blockId) {
+			myBlock = curr;
+			break;
+		}
+		curr = curr->next;
+	}
+	if (myBlock == NULL) {
+		printf("FATAL: Cannot find the current block. We got lost in tree traversal.\n");
+		exit(4);
+	}
+
+	Block* bst = myBlock;
+	while (bst != NULL) {
+		int currId = bst->blockId;
+
+		SymTable* st = masterTable;
+		while (st != NULL) {
+			if (st->blockId == currId && strcmp(ident, st->ident) == 0) {
+				return st;
+			}
+			st = st->next;
+		}
+
+		bst = bst->parentBlock;
+	}
+	return NULL;
 }
 
 bool addToSymTable(int blockId, int type, char* ident) {
@@ -433,8 +479,10 @@ int asmGenExp(int blockId, Plane* stmt) {
 int asmCallFunc(int blockId, Plane* stmt) {
 	const char* ident = stmt->left->val.str;
 
-	if (strcmp(ident, "printf") == 0) {
+	int isBuiltin = false;
+	if (strcmp(ident, "write") == 0) {
 		ident = "puts"; // TODO: put this somewhere else.
+		isBuiltin = true;
 	}
 
 	Plane* args = stmt->right;
@@ -462,7 +510,11 @@ int asmCallFunc(int blockId, Plane* stmt) {
 		saveEAX = true;
 		fprintf(output, "\tmov %s, eax\n", tmp);
 	}
-	fprintf(output, "\tcall %s\n", ident);
+	if (!isBuiltin) {
+		fprintf(output, "\tcall func_%s\n", ident);
+	} else {
+		fprintf(output, "\tcall %s\n", ident);
+	}
 	int ret;
 	const char* reg = consume_reg(ret);
 	if (strcmp(reg, "eax") != 0) {
@@ -552,12 +604,13 @@ void asmGenForeach(Block* parentBlock, int blockId, Plane* stmt) {
 	int bi = ++blockIter;
 	int claimed1 = currLoopIterator++;
 	int claimed2 = currLoopIterator++;
+	// TODO: look at start from and to.
 	fprintf(output, "\tmov ecx, [ITR%04d]\n", claimed1); // claimed 1 has the starting var in it.
 	fprintf(output, "\tmov eax, [ITR%04d]\n", claimed2);
 	fprintf(output, "\tcmp ecx, eax\n");
 	fprintf(output, "\tjge blockend%d\n", bi);
 	fprintf(output, "block%d:\n", bi);
-	fprintf(output, "\tmov ecx, [ITR%03d]\n", claimed1); // claimed 1 has the starting var in it.
+	fprintf(output, "\tmov ecx, [ITR%04d]\n", claimed1); // claimed 1 has the starting var in it.
 	handleSubBlock(parentBlock, bi, stmt->sub);
 	fprintf(output, "\tinc ecx\n");
 	fprintf(output, "\tmov [ITR%04d], ecx\n", claimed1);
@@ -578,7 +631,7 @@ void declareFunction(Plane* funcHead) {
 		exit(4);
 	} else {
 		int bi = ++blockIter;
-		fprintf(output, "\nfunc%d:\t\t; %s\n", bi, ident->val.str);
+		fprintf(output, "\nfunc_%s:\n", ident->val.str);
 		fprintf(output, "\tpush ebp\n");
 		fprintf(output, "\tmov ebp, esp\n");
 		fprintf(output, "\tand esp, 0FFFFFFF0H;\n");

@@ -46,6 +46,7 @@ const char* get_tmp(int &n);
 int asmGenMath(int blockId, Plane* stmt);
 const char* consume_reg(int &reg_num);
 const char* free_reg(int reg_num);
+SymTable* findFromSymTable(int blockId, const char* ident);
 
 void debugDumpSymTable();
 void debugDumpBlocks();
