@@ -127,7 +127,7 @@ StrTable* getString(char* c) {
 void outputStringTable() {
 	StrTable* curr = stringTable;
 	while (curr != NULL) {
-		fprintf(output, "\tstr%04d:\t\tDB\t%s,0\n", curr->ref, curr->val);
+		fprintf(output, "\tSTR%04d:\t\tDB\t%s,0\n", curr->ref, curr->val);
 
 		curr = curr->next;
 	}
@@ -552,16 +552,16 @@ void asmGenForeach(Block* parentBlock, int blockId, Plane* stmt) {
 	int bi = ++blockIter;
 	int claimed1 = currLoopIterator++;
 	int claimed2 = currLoopIterator++;
-	fprintf(output, "\tmov ecx, [itr%04d]\n", claimed1); // claimed 1 has the starting var in it.
-	fprintf(output, "\tmov eax, [itr%04d]\n", claimed2);
+	fprintf(output, "\tmov ecx, [ITR%04d]\n", claimed1); // claimed 1 has the starting var in it.
+	fprintf(output, "\tmov eax, [ITR%04d]\n", claimed2);
 	fprintf(output, "\tcmp ecx, eax\n");
 	fprintf(output, "\tjge blockend%d\n", bi);
 	fprintf(output, "block%d:\n", bi);
-	fprintf(output, "\tmov ecx, [iter%03d]\n", claimed1); // claimed 1 has the starting var in it.
+	fprintf(output, "\tmov ecx, [ITR%03d]\n", claimed1); // claimed 1 has the starting var in it.
 	handleSubBlock(parentBlock, bi, stmt->sub);
 	fprintf(output, "\tinc ecx\n");
-	fprintf(output, "\tmov [itr%04d], ecx\n", claimed1);
-	fprintf(output, "\tmov eax, [itr%04d]\n", claimed2);
+	fprintf(output, "\tmov [ITR%04d], ecx\n", claimed1);
+	fprintf(output, "\tmov eax, [ITR%04d]\n", claimed2);
 	fprintf(output, "\tcmp ecx, eax\n");
 	fprintf(output, "\tjl block%d\n", bi);
 	fprintf(output, "blockend%d:\n", bi);

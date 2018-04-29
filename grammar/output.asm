@@ -25,8 +25,8 @@ section .bss
 	TMP0003:		RESW	1
 
 section .data
-	str0001:		DB	"hello world",0
-	str0000:		DB	"\n",0
+	STR0001:		DB	"hello world",0
+	STR0000:		DB	"\n",0
 
 section .text
 
@@ -87,31 +87,31 @@ func2:		; part2
 	and esp, 0FFFFFFF0H;
 	mov eax, 0
 	mov [var_i], eax
-	mov ecx, [itr0000]
-	mov eax, [itr0001]
+	mov ecx, [ITR0000]
+	mov eax, [ITR0001]
 	cmp ecx, eax
 	jge blockend3
 block3:
-	mov ecx, [iter000]
-	mov ecx, [itr0002]
-	mov eax, [itr0003]
+	mov ecx, [ITR000]
+	mov ecx, [ITR0002]
+	mov eax, [ITR0003]
 	cmp ecx, eax
 	jge blockend4
 block4:
-	mov ecx, [iter002]
+	mov ecx, [ITR002]
 	mov eax, [var_q]
 	mov ebx, [var_t]
 	imul eax, ebx
 	mov [var_i], eax
 	inc ecx
-	mov [itr0002], ecx
-	mov eax, [itr0003]
+	mov [ITR0002], ecx
+	mov eax, [ITR0003]
 	cmp ecx, eax
 	jl block4
 blockend4:
 	inc ecx
-	mov [itr0000], ecx
-	mov eax, [itr0001]
+	mov [ITR0000], ecx
+	mov eax, [ITR0001]
 	cmp ecx, eax
 	jl block3
 blockend3:
